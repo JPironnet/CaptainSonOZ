@@ -1,5 +1,3 @@
-%PlayerManager.Oz
-%Adding players to the list
 functor
 import
 	Player1

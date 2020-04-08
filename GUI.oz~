@@ -1,5 +1,3 @@
-%GUI.Oz
-%Don't change anything 
 functor
 import
 	QTk at 'x-oz://system/wp/QTk.ozf'
