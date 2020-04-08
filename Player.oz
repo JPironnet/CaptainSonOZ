@@ -9,19 +9,12 @@ define
     TreatStream
 in
    %TreatStream
-   /*ID the id of the player initalialized with PlayerManager
-   * Position is initialized to null 
+   /*l 
    */
-    proc{TreatStream Stream Id Position ...} 
+    proc{TreatStream Stream...} 
        case Stream of nil skip
        [] initPosition(?ID ?Position)|T then
-	  Position={GetPosition}
-	  ID=Id
-	  {TreatStream T ID Position ...}
        [] Move(?ID ?Position ?Direction)|T then
-	  ID=Id
-	  Position= %ptdr ben du coup jsp je beug
-	  Direction=%mais la position elle est choisie random? je pige pas
        [] dive|T then %to do
        [] chargeItem(?ID ?KindItem)|T then %to do
        [] fireItem(?ID ?KindFire)|T then %to fo
@@ -42,41 +35,15 @@ in
       end     
     end
 
-    fun{GetPosition}%get a random initial position 
-       Row Column in
-       Row = {Os.rand} mod Input.NRow %between 0 and NRow
-       Column = {OS.rand} mod Input.NColumn %between 0 and NColumn
-       if {IsIsland Row Column 1 1 Input.Map} then {GetPosition}
-       else pt(x:Row y:Column)
-       end
-    end
-
-    fun{IsIsland Row Column Acc1 Acc2 Map} %check if the initial position is an island
-       case Map of H|T then 
-	  if Acc1==Row then
-	     if Acc2==Column+1 then
-		if H==1 then true
-		else false
-		end
-	     else
-		if Acc2>1 then {IsIsland Row Column Acc1 Acc2+1 T}
-		else {IsIsland Row Column Acc1 Acc2+1 H}
-		end
-	     end
-	  else {IsIsland Row Column Acc1+1 Acc2 T}
-	  end
-       end
-    end
-
     
     
-    fun{StartPlayer Color ID} %Color and ID are bound thanks to PlayerManager 
+    fun{StartPlayer Color ID} 
         Stream
         Port
     in
         {NewPort Stream Port}
         thread
-            {TreatStream Stream ID null ...}
+            {TreatStream Stream   ...}
         end
         Port
     end
