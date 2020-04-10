@@ -32,8 +32,8 @@ in
     proc{TreatStream Stream PlayerState} %on remplace les parametres <p1> <p2> etc par un etat du joueur dans lequel on place tous les parametres
         case Stream of nil then skip
 	[] initPosition(?ID ?Position)|T then
-	   ID=PlayerState.ID
-	   Position={InitPosition PlayerState.Position}
+	   ID=PlayerState.id
+	   Position={InitPosition PlayerState.position}
 
         [] move(?ID ?Position ?Direction)|T then
 
@@ -78,20 +78,30 @@ in
     %Function to create the player
     %Returns the port of the player
     fun{StartPlayer Color ID}
-        Stream
-        Port
-        PlayerState
+       Stream
+       Port
+
+       Position
+       Id
+       KindItem
+       LoadCharges
+     
+       PlayerState
     in
+       Position=pt(x:0 y:0) %Initial position
+       Id=id(id:ID color:Color) %Id contains the Id number and a color
+       KindItem=kinditem(mine:0 sonar:0 missile:0 drone:0)
+       LoadCharges=loadcharges(mine:0 sonar:0 missile:0 drone:0)
 
-        PlayerState = %TODO mais je suis sur de rien par rapport a comment coder PlayerState et StartPlayer
+       PlayerState = playerstate(id:Id position:Position kinditem:KindItem loadcharges:LoadCharges damage:0 thinkMin:Input.thinkMin thinkMax:Input.thinkMax)%TODO mais je suis sur de rien par rapport a comment coder PlayerState et StartPlayer
 
-        {NewPort Stream Port}
-        thread
-            {TreatStream Stream PlayerState}
-        end
-        Port
+       {NewPort Stream Port}
+       thread
+	  {TreatStream Stream PlayerState}
+       end
+       Port
     end
-
+    
     %Initialize the position of the player
     %Returns the new position of the player 
     fun{InitPosition Position}
@@ -103,6 +113,12 @@ in
        else {AdjoinList Position [x#Row y#Column]}
        end
     end
+
+
+declare
+Position=pos(x:1 y:2)
+Rec=rec(pos:Position b:'lol')
+{Browse Rec.pos}
 
     %To check if the position is an island or not
     %Returns true if it's an island, false otherwise

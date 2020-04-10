@@ -44,7 +44,8 @@ in
    GUI_Port = {GUI.portWindow}
    {Send GUI_Port buildWindow}
 
-    %Creation des joueurs
+   %Creates players
+   %RecordPlayers has a port, a turnToWait and a alive field
    RecordPlayers = {GeneratePlayers}
 
    %Demande aux joueurs de choisir une position initiale pour DrawSubmarine 
