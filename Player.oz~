@@ -31,16 +31,27 @@ define
 in
     proc{TreatStream Stream PlayerState} %on remplace les parametres <p1> <p2> etc par un etat du joueur dans lequel on place tous les parametres
         case Stream of nil then skip
-	[] initPosition(?ID ?Position)|T then
-	   ID=PlayerState.ID
-	   Position={InitPosition PlayerState.Position}
+	    [] initPosition(?ID ?Position)|T then
+	        ID=PlayerState.id
+	        Position={InitPosition PlayerState.position}
+            {Send GUI_Port ID}
+            {Send GUI_Port Position}
+            {TreatStream T PlayerState}
 
         [] move(?ID ?Position ?Direction)|T then
+            ID=PlayerState.id
+            Direction=
+            Position=
 
-        [] dive|T then 
+            {Send GUI_Port ID}
+            {Send GUI_Port Position}
+            {Send GUI_Port Direction}
+            {TreatStream T PlayerState}    
         
+        [] dive|T then 
+            
         [] chargeItem(?ID ?KindItem)|T then 
-       
+
         [] fireItem(?ID ?KindFire)|T then 
         
         [] fireMine(?ID ?Mine)|T then 
@@ -75,6 +86,31 @@ in
 
     end
 
+
+    %Creation de l'etat du joueur
+    fun {CreateStatePlayer Player}
+        PlayerState
+
+        Position
+        Id
+        KindItem
+        LoadCharges
+    in
+        Position=pt(x:0 y:0)
+        Id=id(id:ID color:Color)
+        KindItem=kinditem(mine:0 sonar:0 missile:0 drone:0)
+        LoadCharges=loadcharges(mine:0 sonar:0 missile:0 drone:0)
+
+        PlayerState = playerstate(
+                                id:Id 
+                                position:Position 
+                                kinditem:KindItem 
+                                loadcharges:LoadCharges
+                                life:Input.maxDamage
+                                )
+        PlayerState
+    end
+
     %Function to create the player
     %Returns the port of the player
     fun{StartPlayer Color ID}
@@ -82,15 +118,12 @@ in
         Port
         PlayerState
     in
-
-        PlayerState = %TODO mais je suis sur de rien par rapport a comment coder PlayerState et StartPlayer
-
+        PlayerState={CreateStatePlayer}
         {NewPort Stream Port}
-        thread
-            {TreatStream Stream PlayerState}
-        end
+        thread {TreatStream Stream PlayerState} end
         Port
     end
+
 
     %Initialize the position of the player
     %Returns the new position of the player 
@@ -119,8 +152,7 @@ in
 	     else {HelpII Row Column Acc1+1 Acc2 T}
 	     end
 	  end
-       end
-       
+       end   
     in
        {HelpII Row Column 1 1 Input.Map}    
     end
