@@ -31,16 +31,27 @@ define
 in
     proc{TreatStream Stream PlayerState} %on remplace les parametres <p1> <p2> etc par un etat du joueur dans lequel on place tous les parametres
         case Stream of nil then skip
-	[] initPosition(?ID ?Position)|T then
-	   ID=PlayerState.id
-	   Position={InitPosition PlayerState.position}
+	    [] initPosition(?ID ?Position)|T then
+	        ID=PlayerState.id
+	        Position={InitPosition PlayerState.position}
+            {Send GUI_Port ID}
+            {Send GUI_Port Position}
+            {TreatStream T PlayerState}
 
         [] move(?ID ?Position ?Direction)|T then
+            ID=PlayerState.id
+            Direction=
+            Position=
 
-        [] dive|T then 
+            {Send GUI_Port ID}
+            {Send GUI_Port Position}
+            {Send GUI_Port Direction}
+            {TreatStream T PlayerState}    
         
+        [] dive|T then 
+            
         [] chargeItem(?ID ?KindItem)|T then 
-       
+
         [] fireItem(?ID ?KindFire)|T then 
         
         [] fireMine(?ID ?Mine)|T then 
@@ -75,33 +86,45 @@ in
 
     end
 
+
+    %Creation de l'etat du joueur
+    fun {CreateStatePlayer Player}
+        PlayerState
+
+        Position
+        Id
+        KindItem
+        LoadCharges
+    in
+        Position=pt(x:0 y:0)
+        Id=id(id:ID color:Color)
+        KindItem=kinditem(mine:0 sonar:0 missile:0 drone:0)
+        LoadCharges=loadcharges(mine:0 sonar:0 missile:0 drone:0)
+
+        PlayerState = playerstate(
+                                id:Id 
+                                position:Position 
+                                kinditem:KindItem 
+                                loadcharges:LoadCharges
+                                life:Input.maxDamage
+                                )
+        PlayerState
+    end
+
     %Function to create the player
     %Returns the port of the player
     fun{StartPlayer Color ID}
-       Stream
-       Port
-
-       Position
-       Id
-       KindItem
-       LoadCharges
-     
-       PlayerState
+        Stream
+        Port
+        PlayerState
     in
-       Position=pt(x:0 y:0) %Initial position
-       Id=id(id:ID color:Color) %Id contains the Id number and a color
-       KindItem=kinditem(mine:0 sonar:0 missile:0 drone:0)
-       LoadCharges=loadcharges(mine:0 sonar:0 missile:0 drone:0)
-
-       PlayerState = playerstate(id:Id position:Position kinditem:KindItem loadcharges:LoadCharges damage:0 thinkMin:Input.thinkMin thinkMax:Input.thinkMax)%TODO mais je suis sur de rien par rapport a comment coder PlayerState et StartPlayer
-
-       {NewPort Stream Port}
-       thread
-	  {TreatStream Stream PlayerState}
-       end
-       Port
+        PlayerState={CreateStatePlayer}
+        {NewPort Stream Port}
+        thread {TreatStream Stream PlayerState} end
+        Port
     end
-    
+
+
     %Initialize the position of the player
     %Returns the new position of the player 
     fun{InitPosition Position}
@@ -113,12 +136,6 @@ in
        else {AdjoinList Position [x#Row y#Column]}
        end
     end
-
-
-declare
-Position=pos(x:1 y:2)
-Rec=rec(pos:Position b:'lol')
-{Browse Rec.pos}
 
     %To check if the position is an island or not
     %Returns true if it's an island, false otherwise
@@ -135,8 +152,7 @@ Rec=rec(pos:Position b:'lol')
 	     else {HelpII Row Column Acc1+1 Acc2 T}
 	     end
 	  end
-       end
-       
+       end   
     in
        {HelpII Row Column 1 1 Input.Map}    
     end
