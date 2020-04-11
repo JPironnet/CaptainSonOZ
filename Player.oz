@@ -31,7 +31,7 @@ define
 in
     proc{TreatStream Stream PlayerState} 
         case Stream of nil then skip
-	[] initPosition(ID Position)|T then
+	[] initPosition(?ID ?Position)|T then
 	   NewPlayerState in
 	   NewPlayerState={InitPosition ID Position PlayerState}
 	   {TreatStream T NewPlayerState}
@@ -41,15 +41,30 @@ in
            NewPlayerState={Move ID Position Direction PlayerState} 
            {TreatStream T NewPlayerState}    
         
-	[] dive|T then %quand turntowait=0 alors il peut
-            {AdjoinList PlayerState [surface#false]} %he is not on surface anymore
-        [] chargeItem(?ID ?KindItem)|T then 
+	[] dive|T then
+	    NewPlayerState in
+           NewPlayerState={Dive PlayerState} 
+	   {TreatStream T NewPlayerState}
+	   
+	[] chargeItem(?ID ?KindItem)|T then
+	   NewPlayerState in
+           NewPlayerState={ChargeItem ID KindItem PlayerState} 
+           {TreatStream T NewPlayerState}
 
-        [] fireItem(?ID ?KindFire)|T then 
+	[] fireItem(?ID ?KindFire)|T then
+	   NewPlayerState in
+           NewPlayerState={FireItem ID KindFire PlayerState} 
+           {TreatStream T NewPlayerState}
         
-        [] fireMine(?ID ?Mine)|T then 
+	[] fireMine(?ID ?Mine)|T then
+	   NewPlayerState in
+           NewPlayerState={FireMine ID Mine PlayerState} 
+           {TreatStream T NewPlayerState}
         
-        [] isDead(?Answer)|T then 
+	[] isDead(?Answer)|T then
+	   NewPlayerState in
+           NewPlayerState={IsDead Answer PlayerState} 
+           {TreatStream T NewPlayerState}
         
         [] sayMove(ID Direction)|T then
         
@@ -102,6 +117,7 @@ in
 			life:Input.maxDamage
 			surface:true
 			visited:nil %liste des positions entre 2 surfaces
+			alive:true
 			)
         PlayerState
     end
@@ -233,8 +249,10 @@ in
        NewPlayerState
     end
 
-    fun{Dive}
-        %TODO
+    fun{Dive PlayerState}
+       NewPlayerState in
+       NewPlayerState={AdjointList PlayerState [surface#false]}
+       NewPlayerState
     end
 
     fun{ChargeItem ?ID ?KindItem}
@@ -249,8 +267,15 @@ in
         %TODO
     end
 
-    fun{IsDead ?Answer}
-        %TODO
+    fun{IsDead Answer PlayerState}
+       NewPlayerState in
+       if PlayerState.life==0 then
+	  Answer=false
+       else
+	  Answer=true
+       end
+       NewPlayerState={AdjoinList PlayerState [alive#Answer]}
+       NewPlayerState
     end
 
     fun{SayMove ID Direction}
