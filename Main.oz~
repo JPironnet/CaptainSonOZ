@@ -74,7 +74,7 @@ in
 	    {Send H.port initPosition(?ID ?Position)}
 	    {Wait ID}
 	    {Wait Position}
-	    {GUI.DrawSubMarine ? ID Position} %ptdr jsp c quoi Grid comme premier argument
+	    {Send GUI_Port initPlayer(ID Position)} %donc ok ca c bon je pense 
         end
     end
     

@@ -29,32 +29,17 @@ define
     SayDamageTaken
 
 in
-    proc{TreatStream Stream PlayerState} %ne devrait on pas ajouter un argument GUI_port?
+    proc{TreatStream Stream PlayerState} 
         case Stream of nil then skip
-	[] initPosition(?ID ?Position)|T then
-	   ID=PlayerState.id
-	   Position={InitPosition PlayerState.position}
-	   %{Send GUI_Port ID} %je pense que ca sert a rien pcq dans le GUI.oz il traite pas ca 
-	   %{Send GUI_Port Position}%pareil du coup
-	   {TreatStream T PlayerState}
+	[] initPosition(ID Position)|T then
+	   NewPlayerState in
+	   NewPlayerState={InitPosition ID Position PlayerState}
+	   {TreatStream T NewPlayerState}
 
-	[] move(?ID ?Position ?Direction)|T then %on doit faire le send dans la main mais jsp trop commment donc je lai ecris ici en attendant
-	   OldPosition in
-           OldPosition=Position
-	   ID=PlayerState.id
-           Direction= %jsp exactement mais en lien avec saymove
-	   Position={Move PlayerState.position PlayerState.visited} %new position
-	   if Position==OldPosition then
-	      PlayerState.surface=true %he is on surface now
-	      PlayerState.visited=nil %visited is nil now because is on surface
-	   else PlayerState.visited={Append Visited [pt(x:PlayerState.position.x y:PlayerState.position.y)]}
-	   end
-
-           %{Send GUI_Port ID}
-           %{Send GUI_Port Position}
-	   %{Send GUI_Port Direction}
-	   {Send GUI_Port movePlayer(ID Position)} %pas sure que ce soit la je pense pas d ailleur que c la
-           {TreatStream T PlayerState}    
+	[] move(?ID ?Position ?Direction)|T then
+	   NewPlayerState in
+           NewPlayerState={Move ID Position Direction PlayerState} 
+           {TreatStream T NewPlayerState}    
         
 	[] dive|T then %quand turntowait=0 alors il peut
             {AdjoinList PlayerState [surface#false]} %he is not on surface anymore
@@ -136,23 +121,28 @@ in
 
 
     %Initialize the position of the player
-    %Returns the new position of the player 
-    fun{InitPosition Position}
-       Row Column
+    %Returns the new state of the player 
+    fun{InitPosition ID Position PlayerState}
+       Row Column NewState
     in
+       ID=PlayerState.id
        Row = {OS.rand} mod {Input.NRow} %choose a random row between 0 and NRow
        Column = {OS.rand} mod {Input.NColumn} %choose a random column between 0 and NColumn
+       Position=pt(x:Row y:Column)
        if {IsIsland Row Column} then {InitPosition}
-       else {AdjoinList Position [x#Row y#Column]}
+       else
+	  NewState={AdjoinList PlayerState [position#Position]}
+	  NewState
        end
     end
 
     %To check if the position is an island or not
     %Returns true if it's an island or the limit of the map, false otherwise
+    %ptdr on l optimisera mais trql pour le moment
     fun{IsIsland Row Column}
-       if Row>3 then true
+       if Row>Input.NRow then true
        else
-	  if Column>4 then true
+	  if Column>Input.Ncolumn then true
 	  else
 	     fun{HelpII Row Column Acc1 Acc2 Map}
 		case Map of H|T then
@@ -171,7 +161,7 @@ in
 		end
 	     end
 	  in
-	     {HelpII Row Column 1 1 [[0 0 1 0] [0 0 0 0] [0 1 0 1]]}
+	     {HelpII Row Column 1 1 Input.Map}
 	  end
        end 
     end
@@ -179,7 +169,7 @@ in
     %Check if the submarine has already vistied the position given by X and Y
     %Return true or false 
     fun{IsVisited X Y List}
-       case List of nil then false %{Append Visited [pt(x:X y:Y)]}%on ajoute a la liste visitee je pense qu on lajoute a la procedure dans player
+       case List of nil then false
        [] H|T then
 	  if H.x==X then
 	     if H.y==Y then true
@@ -190,48 +180,57 @@ in
        end
     end
 
-    fun{Move Position Visited}
-       Direction Dir X Y in
-       Direction= ['East' 'North' 'South' 'West' 'Surface'] %jsp trop comment faire donc j ai fais ocmme ca faudra juste chipoter piur qu ece soit conforme
-       Dir={OS.rand} mod 5+1 %choix d une direction
-       X=Position.x
-       Y=Position.y
-       if Dir==2 then %Si c est nord
-	  if {IsIsland X-1 Y} then %si c est une ile
-	     {Move Position Visited} %on recommence
-	  else %si ce n est pas une ile
-	     if {IsVisited X-1 Y Visited} then {Move Position Visited} %si ca a ete visite on recommence
-	     else {AdjoinList Position [x#X-1]}
+    fun{Move ID Position Direction PlayerState}
+       Poles Dir NewPlayerState in
+       Poles= ['East' 'North' 'South' 'West' 'Surface']
+       Dir={OS.rand} mod 5+1
+       ID=PlayerState.id
+       Direction={Nth Poles Dir}
+       if Dir==2 then %If it's North
+	  if {IsIsland PlayerState.position.x-1 Y} then %if it's an island
+	     {Move Position Visited} 
+	  else 
+	     if {IsVisited Position.x-1 Y PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	     else
+		Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
+		NewPlayerState={AdjoinList PlayerState [position#Position]}
 	     end
 	  end
        elseif Dir==3 then
-	  if {IsIsland X+1 Y} then %si c est une ile
-	     {Move Position Visited} %on recommence
-	  else %si ce n est pas une ile
-	     if {IsVisited X+1 Y Visited} then {Move Position Visited} %si ca a ete visite on recommence
-	     else {AdjoinList Position [x#X+1]}
+	  if {IsIsland  PlayerState.position.x+1 PlayerState.position.y} then
+	     {Move ID Position Direction PlayerState} 
+	  else
+	     if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	     else
+		Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
+		NewPlayerState={AdjoinList PlayerState [position#Position]}
 	     end
 	  end
        elseif Dir==1 then
-	  if {IsIsland X Y+1} then %si c est une ile
-	     {Move Position Visited} %on recommence
-	  else %si ce n est pas une ile
-	     if {IsVisited X Y+1 Visited} then {Move Position Visited} %si ca a ete visite on recommence
-	     else {AdjoinList Position [y#Y+1]}
+	   if {IsIsland  PlayerState.position.x PlayerState.y+1} then
+	     {Move ID Position Direction PlayerState} 
+	  else
+	     if {IsVisited PlayerState.position.x PlayerState.y+1 PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	     else
+		Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
+		NewPlayerState={AdjoinList PlayerState [position#Position]}
 	     end
 	  end
        elseif Dir==4 then
-	  if {IsIsland X Y-1} then %si c est une ile
-	     {Move Position Visited} %on recommence
-	  else %si ce n est pas une ile
-	     if {IsVisited X Y-1 Visited} then {Move Position Visited} %si ca a ete visite on recommence
-	     else {AdjoinList Position [y#Y-1]}
+	  if {IsIsland  PlayerState.position.x PlayerState.y-1} then
+	     {Move ID Position Direction PlayerState} 
+	  else
+	     if {IsVisited PlayerState.position.x PlayerState.y-1 PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	     else
+		Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
+		NewPlayerState={AdjoinList PlayerState [position#Position]}
 	     end
 	  end
        else
-	  Position %si c surface
-	  
+	  Position=PlayerState.position
+	  NewPlayerState={AdjoinList PlayerState [visited#Position]}
        end
+       NewPlayerState
     end
 
     fun{Dive}

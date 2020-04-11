@@ -45,7 +45,15 @@ define
     end
     
     fun {LaunchTurnByTurn Players GUI}
-        %TODO
+        %parcourir la liste de Players
+       %le player 1 commence, c est son tour, quand il a fini de jouer on le retire de la liste
+       %checker si il est alive, si il ne l est pas on le retire de la liste a jamais 
+       %quand tous les players ont fini on recommence avec la liste de depart moins ceux qui sont morts
+       {Send H.port move(?ID ?Position ?Direction)}
+       {Wait ID}
+       {Wait Position}
+       {Wait Direction}
+       {Send GUI movePlayer(ID Position)} %le joueur va bouger 
     end
 
     fun {LaunchSimultaneous Players GUI}
@@ -64,7 +72,7 @@ in
 
 
 
-    %Demande aux joueurs de choisir une position initiale pour DrawSubmarine 
+    %Ask players ti choos an initial position and send to GUI 
     proc{InitialPosition RecordPlayers}
         ID
         Position
@@ -74,7 +82,7 @@ in
 	    {Send H.port initPosition(?ID ?Position)}
 	    {Wait ID}
 	    {Wait Position}
-	    {Send GUI_Port initPlayer(ID Position)} %donc ok ca c bon je pense 
+	    {Send GUI_Port initPlayer(ID Position)}  
         end
     end
     
