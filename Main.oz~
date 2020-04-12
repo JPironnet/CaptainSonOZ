@@ -16,7 +16,7 @@ define
         fun {GP Players Colors Number}
             if Number > Input.nbPlayer then nil %There is no more player in Players
             else 
-                case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number})|{GP T Xr Number+1}
+                case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
                 end
             end
         end
@@ -24,6 +24,12 @@ define
         {GP Input.players Input.colors 1} %Number is initialized to 1
     end
 
+    fun{OnSurface Player}
+       if Player.turnToWait==0 then true
+       else false
+       end
+    end
+    
     %creation de l'etat de la partie 
     fun{CreateGameState RecordPlayers} %je suis vraiment en hess pour coder etat de la partie, genre comment recuperer les differents playerstat
     %si on arrive a recuperer la liste des playerstate, apres il suffit d'en faire une liste et de rajouter les eventuelles param de partie
@@ -44,12 +50,23 @@ define
         {Delay ({OS.rand} mod (Input.thinkMax-Input.thinkMin+1))+Input.thinkMin}
     end
     
-    fun {LaunchTurnByTurn Players GUI}
-        %TODO
+    fun{LaunchTurnByTurn Players GUI}
+        %parcourir la liste de Players
+       %le player 1 commence, c est son tour, quand il a fini de jouer on le retire de la liste
+       %checker si il est alive, si il ne l est pas on le retire de la liste a jamais 
+       %quand tous les players ont fini on recommence avec la liste de depart moins ceux qui sont morts
+       
     end
 
     fun {LaunchSimultaneous Players GUI}
         %TODO
+    end
+
+    %Send Message to all players 
+    proc {BroadCastMessage Message PlayerList}
+       case PlayerList of nil then skip
+       [] H|T then {Send H.port Message}
+       end
     end
     
 in
@@ -64,7 +81,7 @@ in
 
 
 
-    %Demande aux joueurs de choisir une position initiale pour DrawSubmarine 
+    %Ask players ti choos an initial position and send to GUI 
     proc{InitialPosition RecordPlayers}
         ID
         Position
@@ -74,7 +91,7 @@ in
 	    {Send H.port initPosition(?ID ?Position)}
 	    {Wait ID}
 	    {Wait Position}
-	    {Send GUI_Port initPlayer(ID Position)} %donc ok ca c bon je pense 
+	    {Send GUI_Port initPlayer(ID Position)}  
         end
     end
     

@@ -16,7 +16,7 @@ define
         fun {GP Players Colors Number}
             if Number > Input.nbPlayer then nil %There is no more player in Players
             else 
-                case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number})|{GP T Xr Number+1}
+                case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number} turnToWait:1)|{GP T Xr Number+1} %turntowait initialise a 1 pcq plus ez
                 end
             end
         end
@@ -24,6 +24,14 @@ define
         {GP Input.players Input.colors 1} %Number is initialized to 1
     end
 
+    %Check if the player can move
+    %Returns true if he can, false otherwise
+    fun{CanMove Player}
+       if Player.turnToWait==0 then true
+       else false
+       end
+    end
+    
     %creation de l'etat de la partie 
     fun{CreateGameState RecordPlayers} %je suis vraiment en hess pour coder etat de la partie, genre comment recuperer les differents playerstat
     %si on arrive a recuperer la liste des playerstate, apres il suffit d'en faire une liste et de rajouter les eventuelles param de partie
@@ -43,25 +51,60 @@ define
     proc {SimulateThinking}
         {Delay ({OS.rand} mod (Input.thinkMax-Input.thinkMin+1))+Input.thinkMin}
     end
+
     
-    fun {LaunchTurnByTurn Players GUI}
-        %parcourir la liste de Players
-       %le player 1 commence, c est son tour, quand il a fini de jouer on le retire de la liste
-       %checker si il est alive, si il ne l est pas on le retire de la liste a jamais 
-       %quand tous les players ont fini on recommence avec la liste de depart moins ceux qui sont morts
-       {Send H.port move(?ID ?Position ?Direction)}
-       {Wait ID}
-       {Wait Position}
-       {Wait Direction}
-       {Send GUI movePlayer(ID Position)} %le joueur va bouger 
-    end
+    proc{LaunchTurnByTurn Players GameState GUI}
+       %faire une condition si la liste est vide ou non si oui skip car jeu fini
+       case Players of nil then %jsp
+       [] H|T then
+	  {Send isDead(?Answer)}
+	  {Wait Answer}
+	  if Answer==false then %if the player is alive
+	     if {CanMove H} then %if the player can move
+		{Send H.port dive} %the player dives
+		{Send H.port move(?ID ?Position ?Direction)}
+		{Wait ID} {Wait Position} {Wait Direction} 
+		if Direction==Surface then %changer le state et continuer
+		   {Send GUI surface(ID)}
+		else
+		   {Send GUI movePlayer(ID Position)}
+		   %{BroadCast...} osef
+		end
+		{Send H.port chargeItem(?ID ?Item)}
+		{Wait ID} {Wait Item}
+		%{Broadcast...} osef
+		
+		{Send H.port fireItem(?ID ?KindFire)}
+		{Wait ID} {Wait KindFire}
+		if {Label KindFire}==missile then
+		   {BroadCastMessage GameState.playerList sayMissileExplode(ID Position ?Message)} %send to every player that a missile exploded
+		elseif {Label KindFire}==mine then
+		   {Send GUI putMine(ID KindFire.pt)} %je pense que dans <position> le label c est pt
+		end
+		{Send H.port fireMine(?ID ?Mine)}
+		{Wait ID} {Wait Mine}
+		if Mine /= nil then
+		   {BroadCastMessage GameState.playerList sayMineExplode(ID Mine.pt ?Message)} %traiter le msg et send des trucs au gui et remove la mine et Mine.pt = position normalement
+		   
+		{LaunchTurnByTurn T GameState GUI} 
+	     else % si il ne peut pas bouger on doit diminuer son turntowait et actualiser player.turntowait
+		
+	     end
+	  else
+	     {LaunchTurnByTurn {DeletePlayerList} {GameStateUpdate} GUI}  %ca va retirer le joueur de la liste, mettre a jour la liste dans GameState faire les fonctions
+	  end
+	  
+       end
 
     fun {LaunchSimultaneous Players GUI}
         %TODO
     end
 
-    proc {BroadCastMessage Message PlayerList}
-        %TODO
+    %Send Message to all players 
+    fun{BroadCastMessage PlayerList Message}
+       case PlayerList of nil then skip
+       [] H|T then {Send H.port Message}
+       end
     end
     
 in
@@ -95,7 +138,7 @@ in
 
     %Lancement de la partie 
     if(Input.isTurnByTurn) then
-        {LaunchTurnByTurn RecordPlayers GUI_Port}
+        {LaunchTurnByTurn RecordPlayers GameState GUI_Port}
     else 
         {LaunchSimultaneous RecordPlayers GUI_Port}
     end
