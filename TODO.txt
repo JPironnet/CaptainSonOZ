@@ -1,0 +1,15 @@
+1) Compléter la main avec GameState pour pouvoir se lancer dans Launch TurnByTurn et Simultaneous
+
+2) Continuer les petites fonctions de Player et compléter le TreatStream
+
+3) Relire l'énoncé pour implémenter certaines fonctions demandées entre les lignes (par exemple : BroadcastMessage qui pour 3 types d'infos
+il les envoie d'office à tous les joueurs)
+
+4) Pour la fonction FireItem j'ai créé une fonction {RandomPosition} et toi pour initPosition tu fais un gros code spaghetti pour générer 
+une nouvelle en vérifiant si c'est pas sur une île, etc. Je pense que ce serait pas mal de compléter ma fonction {RandomPosition} et de 
+l'appeler directement dans initPosition, c'est + lisible 
+
+5) si on ne trouve pas quoi faire, ne pas hésiter à commenter un max, rendre lisible, faire des belles spécifications pour les fonctions 
+comme le projet présent sur le drive 
+
+n'hésite pas à compléter avec ce que tu vois à ajouter ou corriger

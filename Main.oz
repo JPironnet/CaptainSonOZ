@@ -59,6 +59,10 @@ define
     fun {LaunchSimultaneous Players GUI}
         %TODO
     end
+
+    proc {BroadCastMessage Message PlayerList}
+        %TODO
+    end
     
 in
 

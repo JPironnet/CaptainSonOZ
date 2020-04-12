@@ -31,46 +31,49 @@ define
 in
     proc{TreatStream Stream PlayerState} 
         case Stream of nil then skip
-	[] initPosition(?ID ?Position)|T then
-	   NewPlayerState in
-	   NewPlayerState={InitPosition ID Position PlayerState}
-	   {TreatStream T NewPlayerState}
+	    [] initPosition(?ID ?Position)|T then
+	        NewPlayerState in
+	        NewPlayerState={InitPosition ID Position PlayerState}
+	        {TreatStream T NewPlayerState}
 
-	[] move(?ID ?Position ?Direction)|T then
-	   NewPlayerState in
-           NewPlayerState={Move ID Position Direction PlayerState} 
-           {TreatStream T NewPlayerState}    
+	    [] move(?ID ?Position ?Direction)|T then
+	        NewPlayerState in
+            NewPlayerState={Move ID Position Direction PlayerState} 
+            {TreatStream T NewPlayerState}    
         
-	[] dive|T then
-	    NewPlayerState in
-           NewPlayerState={Dive PlayerState} 
-	   {TreatStream T NewPlayerState}
+	    [] dive|T then
+	        NewPlayerState in
+            NewPlayerState={Dive PlayerState} 
+	        {TreatStream T NewPlayerState}
 	   
-	[] chargeItem(?ID ?KindItem)|T then
-	   NewPlayerState in
-           NewPlayerState={ChargeItem ID KindItem PlayerState} 
-           {TreatStream T NewPlayerState}
+	    [] chargeItem(?ID ?KindItem)|T then
+	        NewPlayerState in
+            NewPlayerState={ChargeItem ID KindItem PlayerState} 
+            {TreatStream T NewPlayerState}
 
-	[] fireItem(?ID ?KindFire)|T then
-	   NewPlayerState in
-           NewPlayerState={FireItem ID KindFire PlayerState} 
-           {TreatStream T NewPlayerState}
+    	[] fireItem(?ID ?KindFire)|T then
+	        NewPlayerState in
+            NewPlayerState={FireItem ID KindFire PlayerState} 
+            {TreatStream T NewPlayerState}
         
-	[] fireMine(?ID ?Mine)|T then
-	   NewPlayerState in
-           NewPlayerState={FireMine ID Mine PlayerState} 
-           {TreatStream T NewPlayerState}
+	    [] fireMine(?ID ?Mine)|T then
+	        NewPlayerState in
+            NewPlayerState={FireMine ID Mine PlayerState} 
+            {TreatStream T NewPlayerState}
         
-	[] isDead(?Answer)|T then
-	   NewPlayerState in
-           NewPlayerState={IsDead Answer PlayerState} 
-           {TreatStream T NewPlayerState}
+	    [] isDead(?Answer)|T then
+	        NewPlayerState in
+            NewPlayerState={IsDead Answer PlayerState} 
+            {TreatStream T NewPlayerState}
         
         [] sayMove(ID Direction)|T then
+            {TreatStream T PlayerState}
         
         [] saySurface(ID)|T then
+            {TreatStream T PlayerState}
         
         [] sayCharge(ID KindItem) then
+            {TreatStream T PlayerState}
         
         [] sayMinePlaced(ID) then
         
@@ -79,20 +82,25 @@ in
         [] sayMineExplode(ID Position ?Message) then
         
         [] sayPassingDrone(Drone ?ID ?Answer) then
+            {TreatStream T PlayerState}
         
         [] sayAnswerDrone(Drone ID Answer) then
+            {TreatStream T PlayerState}
         
         [] sayPassingSonar(?ID ?Answer)then
+            {TreatStream T PlayerState}
         
         [] sayAnswerSonar(ID Answer) then
+            {TreatStream T PlayerState}
         
         [] sayDeath(ID) then
+            {TreatStream T PlayerState}
         
         [] sayDamageTaken(ID Damage LifeLeft) then
-    
-	end
-
-    end
+            {TreatStream T PlayerState}
+        
+        end
+     end
 
 
     %Creation de l'etat du joueur
@@ -101,23 +109,27 @@ in
 
         Position
         Id
-        KindItem
-        LoadCharges
     in
         Position=pt(x:0 y:0)
         Id=id(id:ID color:Color name:_)
-        KindItem=kinditem(mine:0 sonar:0 missile:0 drone:0)
-        LoadCharges=loadcharges(mine:0 sonar:0 missile:0 drone:0)
 
        PlayerState = playerstate(
 			id:Id 
-			position:Position 
-			kinditem:KindItem 
-			loadcharges:LoadCharges
+			position:Position
 			life:Input.maxDamage
 			surface:true
 			visited:nil %liste des positions entre 2 surfaces
 			alive:true
+            mineCharge:0
+            mineAmmo:0
+            missileCharge:0
+            missileAmmo:0
+            sonarCharge:0
+            sonarAmmo:0
+            droneCharge:0
+            droneAmmo:0
+            minePlanted:0
+            mineLocation:nil
 			)
         PlayerState
     end
@@ -138,18 +150,18 @@ in
 
     %Initialize the position of the player
     %Returns the new state of the player 
-    fun{InitPosition ID Position PlayerState}
-       Row Column NewState
+    fun{InitPosition ?ID ?Position PlayerState}
+        Row Column NewState
     in
-       ID=PlayerState.id
-       Row = {OS.rand} mod {Input.NRow} %choose a random row between 0 and NRow
-       Column = {OS.rand} mod {Input.NColumn} %choose a random column between 0 and NColumn
-       Position=pt(x:Row y:Column)
-       if {IsIsland Row Column} then {InitPosition}
-       else
-	  NewState={AdjoinList PlayerState [position#Position]}
-	  NewState
-       end
+        ID=PlayerState.id
+        Row = {OS.rand} mod Input.NRow %choose a random row between 0 and NRow
+        Column = {OS.rand} mod Input.NColumn %choose a random column between 0 and NColumn
+        Position=pt(x:Row y:Column)
+        if {IsIsland Row Column} then {InitPosition}
+        else
+	        NewState={AdjoinList PlayerState [position#Position]}
+	        NewState
+        end
     end
 
     %To check if the position is an island or not
@@ -185,18 +197,18 @@ in
     %Check if the submarine has already vistied the position given by X and Y
     %Return true or false 
     fun{IsVisited X Y List}
-       case List of nil then false
-       [] H|T then
-	  if H.x==X then
-	     if H.y==Y then true
-	     else false
-	     end
-	  else false
-	  end
-       end
+        case List of nil then false
+        [] H|T then
+	    if H.x==X then
+	        if H.y==Y then true
+	        else false
+	        end
+	    else false
+	    end
+        end
     end
 
-    fun{Move ID Position Direction PlayerState}
+    fun{Move ID ?Position ?Direction PlayerState}
        Poles Dir NewPlayerState in
        Poles= ['East' 'North' 'South' 'West' 'Surface']
        Dir={OS.rand} mod 5+1
@@ -255,16 +267,113 @@ in
        NewPlayerState
     end
 
-    fun{ChargeItem ?ID ?KindItem}
-        %TODO
+    fun{ChargeItem ?ID ?KindItem PlayerState}
+        ID = PlayerState.id
+        Choice = {OS.rand} mod 4 + 1
+        if (Choice==1) then
+            if (PlayerState.mineCharge+1 == Input.mine) then
+                {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+                KindItem = mine
+                {AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
+            else 
+                KindItem = nil
+                {AdjoinList PlayerState [mineCharge#PlayerState.mineCharge+1]}
+            end
+
+        elseif (Choice==2) then
+            if (PlayerState.missileCharge+1 == Input.missile) then
+                {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+                KindItem = missile
+                {AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
+            else 
+                KindItem = nil
+                {AdjoinList PlayerState [missileCharge#PlayerState.missileCharge+1]}
+            end
+            
+
+        elseif (Choice==3) then
+            if (PlayerState.sonarCharge+1 == Input.sonar) then
+                {AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
+                {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+                KindItem = sonar
+            else 
+                {AdjoinList PlayerState [sonarCharge#PlayerState.sonarCharge+1]}
+                KindItem = nil
+            end
+
+
+        elseif (Choice==4) then
+            if (PlayerState.droneCharge+1 == Input.drone) then
+                {AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
+                {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+                KindItem = drone
+            else 
+                {AdjoinList PlayerState [droneCharge#PlayerState.droneCharge+1]}
+                KindItem = nil
+            end
     end
 
-    fun{FireItem ?ID ?KindFire}
-        %TODO
+    fun {RandomPosition}
+        Row Column Position in
+        Row = {OS.rand} mod Input.NRow
+        Column = {OS.rand} mod Input.NColumn
+        Position=pt(x:Row y:Column)
+        Position
     end
 
-    fun{FireMine ?ID ?Mine}
-        %TODO
+    fun {RandomRowOrColumn}
+        Choice Drone Result in  
+        Choice = {OS.rand} mod 2
+        if (Choice==0) then
+            Result = {OS.rand} mod Input.NRow
+            Drone = drone(row:Result)
+            Drone 
+        else 
+            Result = {OS.rand} mod Input.NColumn
+            Drone = drone(column:Result)
+            Drone 
+        end
+    end
+            
+
+    fun{FireItem ?ID ?KindFire PlayerState}
+        ID=PlayerState.id
+        if (PlayerState.mineAmmo > 0) then
+            KindFire = mine({RandomPosition})
+            if (PlayerState.minePlanted==0) then
+                {AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#1 mineLocation#KindFire]}
+            else
+                {AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#minePlanted+1 mineLocation#mineLocation|KindFire]}
+            end
+        else 
+            if (PlayerState.missileAmmo > 0) then
+                KindFire = missile({RandomPosition})
+                {AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
+            else 
+                if(PlayerState.droneAmmo > 0) then
+                    KindFire = drone({RandomRowOrColumn})
+                    {AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
+                else 
+                    if(PlayerState.sonarAmmo > 0) then
+                        {AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
+                    else 
+                        KindFire = nil
+                        PlayerState
+                    end
+                end
+            end
+        end        
+    end
+
+    fun{FireMine ?ID ?Mine PlayerState}
+        ID=PlayerState.id
+        case PlayerState.mineLocation of nil then
+            Mine=nil
+            PlayerState
+        [] H|T then
+            Mine=H
+            {AdjoinList PlayerState [minePlanted#minePlanted-1 mineLocation#T]}
+        else
     end
 
     fun{IsDead Answer PlayerState}
@@ -279,19 +388,19 @@ in
     end
 
     fun{SayMove ID Direction}
-        %TODO
+        nil
     end
 
     fun{SaySurface ID}
-        %TODO
+        nil
     end
 
     fun{SayCharge ID KindItem}
-        %TODO
+        nil
     end
 
     fun{SayMinePlaced ID}
-        %TODO
+        nil
     end
 
     fun{SayMissileExplode ID Position ?Message}
@@ -303,26 +412,26 @@ in
     end
 
     fun{SayPassingDrone Drone ?ID ?Answer}
-        %TODO
+        nil
     end
 
     fun{SayAnswerDrone Drone ID Answer}
-        %TODO
+        nil
     end
 
     fun{SayPassingSonar ?ID ?Answer}
-        %TODO
+        nil
     end
 
     fun{SayAnswerSonar ID Answer}
-        %TODO
+        nil
     end
 
     fun{SayDeath ID}
-        %TODO
+        nil
     end
 
     fun{SayDamageTaken ID Damage LifeLeft}
-        %TODO
+        nil
     end
 end
