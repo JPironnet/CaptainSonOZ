@@ -10,6 +10,8 @@ il les envoie d'office à tous les joueurs)
 5) si on ne trouve pas quoi faire, ne pas hésiter à commenter un max, rendre lisible, faire des belles spécifications pour les fonctions 
 comme le projet présent sur le drive 
 
+----> maintenant qu'on a une base sur quasi tout, essayer de finaliser une première version avec des IA débiles 
+
 EN GROS
 Faut faire la lauchn tuurn by turn pour ça
 - dans gamestate avoir une liste des joueurs toujours a jour (donc quand ils sont morts on l'enleve de la liste et c'est avec cette liste la qu'on va pouvoir
