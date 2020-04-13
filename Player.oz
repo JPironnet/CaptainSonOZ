@@ -79,12 +79,12 @@ in
 	 
       [] sayMissileExplode(ID Position ?Message) then
 	 NewPlayerState in
-	 NewPlayerState={SayMissileExplode ID Position PlayerState Message} 
+	 NewPlayerState={SayMissileExplode ID Position PlayerState ?Message} 
 	 {TreatStream T NewPlayerState}
 	 
       [] sayMineExplode(ID Position ?Message) then
 	 NewPlayerState in
-	 NewPlayerState={SayMineExplode ID Position PlayerState Message} 
+	 NewPlayerState={SayMineExplode ID Position PlayerState ?Message} 
 	 {TreatStream T NewPlayerState}
 	 
       [] sayPassingDrone(Drone ?ID ?Answer) then
@@ -109,7 +109,10 @@ in
    end
 
 
-    %Creation de l'etat du joueur
+   %Creates the state of the player
+   %PlayerState::=playerstate(id: position:<Position> life: visited:<ListVisited> ...)
+   %<ListVisited>::=null|[Position1 ... PositionN] and <PositionN>::=<Position>
+   %Returns the state of the player
    fun {CreateStatePlayer Player}
       PlayerState
 
@@ -170,6 +173,9 @@ in
       end
    end
 
+   %ID, Position and Direction are binds as follow :
+   %ID::=<id>, Position::=<Position> and Direction::=<carddirection>|surface
+   %Returns the new state of the player
    fun{Move ?ID ?Position ?Direction PlayerState}
       Poles Dir NewPlayerState in
       Poles= ['East' 'North' 'South' 'West' 'Surface']
@@ -227,13 +233,16 @@ in
    end
 
     %The player is in the water and not at the surface anymore
-    %Return the new state of the player
+    %Returns the new state of the player
    fun{Dive PlayerState}
       NewPlayerState in
       NewPlayerState={AdjointList PlayerState [surface#false]}
       NewPlayerState
    end
 
+   %ID and KindItem are binds as follow :
+   %ID::=<id> and KindItem::=null|missile|mine|sonar|drone
+   %Returns the new state of the player
    fun{ChargeItem ?ID ?KindItem PlayerState}
       ID = PlayerState.id
       Choice = {OS.rand} mod 4 + 1
@@ -246,7 +255,6 @@ in
 	    KindItem = nil
 	    {AdjoinList PlayerState [mineCharge#PlayerState.mineCharge+1]}
 	 end
-
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
 	    {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
@@ -256,8 +264,6 @@ in
 	    KindItem = nil
 	    {AdjoinList PlayerState [missileCharge#PlayerState.missileCharge+1]}
 	 end
-	 
-
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
 	    {AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
@@ -267,8 +273,6 @@ in
 	    {AdjoinList PlayerState [sonarCharge#PlayerState.sonarCharge+1]}
 	    KindItem = nil
 	 end
-
-
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
 	    {AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
@@ -281,6 +285,10 @@ in
       end
    end
 
+   %ID and KindFire are binds as follow :
+   %ID::=<id> and KindFire::=<fireitem>|null
+   %KindFire=nil if the player does not hae enough charge to fire an item
+   %Returns the new state of the player
    fun{FireItem ?ID ?KindFire PlayerState}
       NewPlayerState in
       ID=PlayerState.id
@@ -305,13 +313,18 @@ in
 		  NewPlayerState
 	       else 
 		  KindFire = nil
-		  PlayerState
+		  NewPlayerState=PlayerState
+		  NewPlayerState
 	       end
 	    end
 	 end
       end        
    end
 
+   %ID and Mine are bind as follow :
+   %Id::=<id> and Mine::=mine(<Position>)|null
+   %If the player does not have mine, then nil
+   %Returns the new state of the player
    fun{FireMine ?ID ?Mine PlayerState}
       NewPlayerState in
       ID=PlayerState.id
@@ -325,6 +338,9 @@ in
       end
    end
 
+   %Check if the player is dead or not
+   %Binds Anwser as follow : Answer::=true|false
+   %Returns the state of the player
    fun{IsDead ?Answer PlayerState}
       NewPlayerState in
       if PlayerState.life==0 then
@@ -332,7 +348,7 @@ in
       else
 	 Answer=false
       end
-      NewPlayerState={AdjoinList PlayerState [alive#Answer]}
+      NewPlayerState=PlayerState
       NewPlayerState
    end
 
@@ -352,23 +368,45 @@ in
       nil
    end
 
+   %Checks the distance thanks to Manhattan distance
+   %Binds <Message> ::=message(id:<id> damage:0|1|2 lifeleft:<life>)
+   %Returns the new state of the player
    fun{SayMissileExplode ID Position PlayerState ?Message}
       NewPlayerState
       Manhattan in
       Manhattan = (Position.x-PlayerState.position.x) + (Position.y - PlayerState.position.y)
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
+	 Message=message(id:NewPlayerState.id damage:0 lifeleft:NewPlayerState.life) %there is no life anymore
 	 NewPlayerState
       elseif Manhattan==1 then
-	 NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-1]}
-	 NewPlayerState
+	 if PlayerState.life==1
+	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
+	    Message=message(id:NewPlayerState.id damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
+	    NewPlayerState
+	 else
+	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-1]}
+	    Message=message(id:NewPlayerState.id damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
+	    NewPlayerState
+	 end
       else
-	 NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-2]}
+	 if PlayerState.life=<2
+	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
+	    Message=message(id:NewPlayerState.id damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
+	    NewPlayerState
+	 else
+	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-2]}
+	    Message=message(id:NewPlayerState.id damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
+	    NewPlayerState
+	 end
       end
    end
 
-   fun{SayMineExplode ID Position ?Message}
-        %TODO
+    %Checks the distance thanks to Manhattan distance
+   %Binds <Message> ::=message(id:<id> damage:0|1|2 lifeleft:<life>)
+   %Returns the new state of the player
+   fun{SayMineExplode ID Position PlayerState ?Message}
+        {SayMissileExplode ID Position PlayerState ?Message}
    end
 
    fun{SayPassingDrone Drone ?ID ?Answer}
@@ -395,10 +433,11 @@ in
       nil
    end
 
-%%%%%%%%%%% Fonctions utiles %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Useful functions %%%%%%%%%%%%%%%%%%%
 
-   %Choose a random position, row is between 1 and Input.Nrow and Column is between 1 and Input.NColumn
-   %Returns a position
+   %Choose a random position
+   %<Row>::= 1|2|...|Input.nRow and <Column>::=1|2|...|Input.nColumn
+   %Returns a position and Position::=pt(x:<Row> y:<Column>)
    fun {RandomPosition}
       Row Column Position in
       Row = {OS.rand} mod Input.NRow+1
@@ -424,9 +463,8 @@ in
       end
    end
 
-    %To check if the position is an island or not
+    %Check if the position is an island/limit of the map or not (1 or 0)
     %Returns true if it's an island or the limit of the map, false otherwise
-    %ptdr on l optimisera mais trql pour le moment
    fun{IsIsland Row Column}
       if Row>Input.NRow then true
       else
@@ -455,8 +493,8 @@ in
       {HelpII Row Column 1 1 Input.Map}
    end 
 
-    %Check if the submarine has already vistied the position given by X and Y
-    %Return true or false 
+    %Checks if the submarine has been already visited the <Position> given by X and Y
+    %Returns true or false 
    fun{IsVisited X Y List}
       case List of nil then false
       [] H|T then

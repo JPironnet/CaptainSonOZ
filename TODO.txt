@@ -1,27 +1,10 @@
-1) Compléter la main avec GameState pour pouvoir se lancer dans Launch TurnByTurn et Simultaneous
-
 2) Continuer les petites fonctions de Player et compléter le TreatStream : ok sauf les say mais osef pour le moment
 
-3) Relire l'énoncé pour implémenter certaines fonctions demandées entre les lignes (par exemple : BroadcastMessage qui pour 3 types d'infos
-il les envoie d'office à tous les joueurs)
-
-4) check une fonction deja existente pour la valeur absolue pour sayMissileExplode
+!!!4) check une fonction deja existente pour la valeur absolue pour sayMissileExplode!!!!!!!!!! Si tu sais check j ai pas trouvé moi 
 
 5) si on ne trouve pas quoi faire, ne pas hésiter à commenter un max, rendre lisible, faire des belles spécifications pour les fonctions 
 comme le projet présent sur le drive 
 
-----> maintenant qu'on a une base sur quasi tout, essayer de finaliser une première version avec des IA débiles 
+----> maintenant qu'on a une base sur quasi tout, essayer de finaliser une première version avec des IA débiles
 
-EN GROS
-Faut faire la lauchn tuurn by turn pour ça
-- dans gamestate avoir une liste des joueurs toujours a jour (donc quand ils sont morts on l'enleve de la liste et c'est avec cette liste la qu'on va pouvoir
-boucler la lauchnturnbyturn en ft)
-- j'ai commencé mais jai pas su tout finir pleins d'idées me venaient en tete en mm temps
-- regarde avec BroadCastMessage si il est ok mais je pense que oui 
-- quand c'est fire item et qu'on appelle apres saymissileexplode et saymineexplode il faut check si ils sont alive (donc gérer le message qui est 
-bind dans saymissileexplode) et chech si le msg dis "saydeath" ou "saydamagetaken" et si c'est saydeath remove ce joueur de la liste des joueurs dans 
-gamestate si c'est saysamagetaken tout a été mis a jour normalement donc rien a faire 
-- la fonction {Label KindFire} est normalement une fonction tt faite dans oz pour les records et qui renvoie le label donc {Label KindFire} renvoie
-mine si c'est une mine car KindFire=min(pt(x: y:)) donc c'est un record avec un record dedans je pense 
-- du coup comme KindItem c'est par exemple mine(pt(x: y: )) et que c'est un record dans un record pour avoir la position de la mine on fait Mine.1 pour avoir la 
-position je pense
+- Optimiser IsIsland mdr 

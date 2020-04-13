@@ -12,17 +12,17 @@ define
 
     %Function to generate players at the beginning of the game
     %Returns a list of records with label player and three fields (port, turnToWait and alive)
-    fun {GeneratePlayers}
-        fun {GP Players Colors Number}
-            if Number > Input.nbPlayer then nil %There is no more player in Players
-            else 
-                case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number} turnToWait:Input.nbPlayer-1|{GP T Xr Number+1} %turntowait initialise a 1 pcq plus ez
-                end
-            end
-        end
-    in
-        {GP Input.players Input.colors 1} %Number is initialized to 1
-    end
+   fun {GeneratePlayers}
+      fun {GP Players Colors Number}
+	 if Number > Input.nbPlayer then nil %There is no more player in Players
+	 else 
+	    case Players#Colors of (H|T)#(X|Xr) then player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
+	    end
+	 end
+      end
+   in
+      {GP Input.players Input.colors 1} %Number is initialized to 1
+   end
 
     %Check if the player can move
     %Returns true if he can, false otherwise
@@ -37,6 +37,7 @@ define
        GameState in
        GameState= gamestate(playerslist:RecordPlayers
 			    playersalive:Input.nbPlayer
+			    firstRound:true
 			   )
        GameState
     end
@@ -47,7 +48,8 @@ define
     end
 
     
-    %Function that updates the turnToWait of the player, and then updates the playerslist of GameState. Thanks to this function, the player is updated for the next round
+    %Function that updates the turnToWait of the player, and then updates the playerslist of GameState.
+    %Thanks to this function, the player is updated for the next round with turnToWait smaller 
     %Returns NewGameState
     fun{UpdateTtw Player GameState}
        NewPlayer
@@ -59,6 +61,10 @@ define
        NewGameState
     end
 
+    %Sends to the port of the player the message move
+    %ID Position and Direction are binds
+    %Check if Direction is Surface or not and sends to GUI some informations
+    %Return the new state of the game
     fun{Move Player GameState GUI}
        {Send Player.port move(?ID ?Position ?Direction)}
        {Wait ID} {Wait Position} {Wait Direction}
@@ -71,7 +77,8 @@ define
 	  NewGameState
        else
 	  {Send GUI movePlayer(ID Position)} %the submarine moves
-	  GameState
+	  NewGameState=GameState
+	  NewGameState
        end
     end
 
@@ -87,40 +94,88 @@ define
        end
     end
 
+    %Send to the port of the player the message chargeItem
+    %ID and Item are binds as follow :
+    %Id::=<id>
+    %Item::=null|mine|missile|sonar|drone
+    %Return the state of the game
     fun{ChargeItem Player GameState GUI}
        {Send Player.port chargeItem(?ID ?Item)}
        {Wait ID}
        {Wait Item}
+       %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
        GameState
     end
 
+    %Sends sayMissileExplode or sayMineExplode and waits until Message is bind.
+    %Message ::= message(id:<id> damage:0|1|2 lifeleft:<life>)
+    %Returns the new state of the game
+    fun{FireMissileOrMine ID KindFire PlayersList GameState GUI}
+       case PlayersList of nil then GameState
+       [] H|T then
+	  if {Label KindFire}==missile then
+	     {Send H.port sayMissileExplode(ID KindFire.1 ?Message)} %Send to the port of the player sayMissileExplode with the ID of the player, with Position KindFire.1
+	     {Wait Message}
+	  else
+	     {Send H.port sayMineExplode(ID KindFire.1 ?Message)}
+	     {Wait Message}
+	  end
+	  if Message.lifeleft==0 then
+	     NewGameState in
+             %{BroadCastMessage GameState.playerslist sayDeath(Message.id)} 
+	     NewGameState={UpdateListOfPlayers H GameState} %removes H of GameState.playerslist because H is dead
+	     {Send GUI lifeUpdate(Message.id Message.lifeleft)}
+	     {Send GUI removePlayer(Message.id)} 
+	     {FireMissileOrMine ID KindFire T NewGameState GUI}
+	  else
+	     %{BroadCastMessage GameState.playerslist sayDamageTaken(Message.id Message.damage Message.lifeleft)}
+	     {Send GUI lifeUpdate(Message.id Message.lifeleft)}
+	     {FireMissileOrMine ID KindFire T GameState GUI}
+	  end
+       end
+    end
+       
+    %Sends to the port of the player fireItem
+    %ID and Mine are binds as follow :
+    %ID::=<id> the id of the player who fired the item
+    %KindFire ::= <fireitem>
+    %If KindFire is a missile, calls the function FireMissileOrMine
+    %Returns the new state of the game
     fun{FireItem Player GameState GUI}
        {Send Player.port fireItem(?ID ?KindFire)}
        {Wait ID}
        {Wait KindFire}
        if {Label KindFire}==missile then
-	  {BroadCastMessage GameState.playerList sayMissileExplode(ID Position ?Message)} %Sends to every player that a missile exploded
-	  {Wait Message}
-      %ptet check si c est saydeath alors remove de la liste
-	  GameState
+	  NewGameState in
+	  NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
+	  NewGameState
        elseif {Label KindFire}==mine then
 	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
 	  GameState
        end
     end
 
+    %Sends to the port of the player fireMine
+    %ID and Mine are binds as follow :
+    %ID::=<id> the id of the player who exploded the mine
+    %Mine ::= mine(<Position>)
+    %If the player has a mine, the mine explodes, and calls the function FireMissileOrMine
+    %Returns the new state of the game
     fun{MineExplode Player GameState GUI}
        {Send H.port fireMine(?ID ?Mine)}
        {Wait ID}
        {Wait Mine}
-       if Mine /= nil then
-	  {BroadCastMessage GameState.playerList sayMineExplode(ID Mine.1 ?Message)} %traiter le msg Message si il est dead
-	  {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1 
+       if Mine \= nil then
+	  NewGameState in
+	  NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
+	  {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
+       else
+	  GameState
        end
     end
 
-%Removes Player of PlayerList because he is dead
-%Returns the updated list of player 
+    %Removes Player of PlayerList because he is dead
+    %Returns the updated list of players 
     fun{RemoveList Player PlayersList}
        case PlayersList of nil then nil
        [] H|T then
@@ -131,9 +186,11 @@ define
        end
     end
 
-%Updates the list of player if one player is dead
-%Returns the new state of the game
-    fun{UpdateList Player GameState}
+    %Updates the list of player if one player is dead
+    %NewList::=[<player1> <player2> ... <playerN>]
+    %PlayerN::=player(port:integer turnToWait:0|1|...|Input.nbSurface
+    %Returns the new state of the game
+    fun{UpdateListOfPlayers Player GameState}
        NewList
        NewGameState in
        NewList={RemoveList Player GameState.playerslist}
@@ -141,7 +198,6 @@ define
        NewGameState
     end
 
-%par contre jsp pour removePlayer
     proc{LaunchTurnByTurn Players GameState GUI}
        if GameState.playeralive==1 then skip %it is the end of the game
        else
@@ -151,7 +207,7 @@ define
 	     {Send isDead(?Answer)}
 	     {Wait Answer}
 	     if Answer==true then %Step one of the loop. Check if the player is dead.
-		GS1={UpdateList H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
+		GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
 		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
 	     else
 		if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
@@ -160,17 +216,15 @@ define
 		else 
 		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
 		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		   GS3={ChargeItem H GS2 GUI}
-		   GS4={FireItem H GS3 GUI}
-		   GS5={MineExplode H GS4 GUI}
+		   GS3={ChargeItem H GS2 GUI} %Step three
+		   GS4={FireItem H GS3 GUI} %Step four
+		   GS5={MineExplode H GS4 GUI} %Step five
 		   {LaunchTurnByTurn T GS5 GUI}
 		end
 	     end
 	  end
        end
     end
-
-    
 
     proc {LaunchSimultaneous Players GameState GUI}
         proc {Turn Player}
