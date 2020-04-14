@@ -1,5 +1,4 @@
 %Main.Oz
-declare
 functor
 import
     GUI
@@ -10,8 +9,27 @@ define
     GUI_Port
     RecordPlayers 
 
-    GameState %Etat de la partie TODO
+   GeneratePlayers
+   CanMove
+   CreateGameState
+   SimulateThinking
+   UpdateTtw
+   Move
+   CreateNewList
+   ChargeItem
+   FireItem
+   FireMissileOrMine
+   MineExplode
+   RemoveList
+   UpdateListOfPlayers
+   LaunchTurnByTurn
+   LaunchSimultaneous
+   InitialPosition
+   BroadCastMessage
 
+   GameState
+in
+   
     %Function to generate players at the beginning of the game
     %Returns a list of records with label player and three fields (port, turnToWait and alive)
    fun {GeneratePlayers}
@@ -33,6 +51,7 @@ define
        else false
        end
     end
+
     
     %creation de l'etat de la partie 
     fun{CreateGameState RecordPlayers}
@@ -118,7 +137,7 @@ define
        Message in 
        case PlayersList of nil then GameState
        [] H|T then
-	  if {Label KindFire}==missile then
+	  if {Record.label KindFire}==missile then
 	     {Send H.port sayMissileExplode(ID KindFire.1 ?Message)} %Send to the port of the player sayMissileExplode with the ID of the player, with Position KindFire.1
 	     {Wait Message}
 	  else
@@ -168,17 +187,18 @@ define
     %If the player has a mine, the mine explodes, and calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{MineExplode Player GameState GUI}
-        ID Mine in 
-        {Send Player.port fireMine(?ID ?Mine)}
-        {Wait ID}
-        {Wait Mine}
-        if Mine \= nil then
-	        NewGameState in
-	        NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
-	        {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
-        else
-	        GameState
-        end
+       ID Mine in 
+       {Send Player.port fireMine(?ID ?Mine)}
+       {Wait ID}
+       {Wait Mine}
+       if Mine \= nil then
+	  NewGameState in
+	  NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
+	  {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
+	  NewGameState
+       else
+	  GameState
+       end
     end
 
     %Removes Player of PlayerList because he is dead
@@ -206,27 +226,44 @@ define
     end
 
     proc{LaunchTurnByTurn Players GameState GUI}
-       if GameState.playeralive==1 then skip %it is the end of the game
+       if GameState.alive==1 then skip %it is the end of the game
        else
-	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
-	  [] H|T then
-	     Answer GS1 GS2 GS3 GS4 GS5 in
-	     {Send isDead(?Answer)}
-	     {Wait Answer}
-	     if Answer==true then %Step one of the loop. Check if the player is dead.
-		GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
-		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
+	  case Players of nil then
+	     if GameState.firstRound==true then
+		GS0 in
+		GS0={AdjoinList GameState [firstRound#false]}
+		{LaunchTurnByTurn GS0.playerslist GS0 GUI}
 	     else
-		if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
-		   GS1={UpdateTtw H GameState}
-		   {LaunchTurnByTurn T GS1 GUI}
-		else 
-		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
-		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		   GS3={ChargeItem H GS2 GUI} %Step three
-		   GS4={FireItem H GS3 GUI} %Step four
-		   GS5={MineExplode H GS4 GUI} %Step five
-		   {LaunchTurnByTurn T GS5 GUI}
+		{LaunchTurnByTurn GameState.playerslist GameState GUI}
+	     end
+	  [] H|T then
+	     if GameState.firstRound==true then
+		ID Position in
+		{Send H.port dive}
+		{Send H.port initPosition(?ID ?Position)}
+		{Wait ID}
+		{Wait Position}
+		{Send GUI initPlayer(ID Position)}
+		{LaunchTurnByTurn T GameState GUI}
+	     else
+		Answer GS1 GS2 GS3 GS4 GS5 in
+		{Send H.port isDead(?Answer)}
+		{Wait Answer}
+		if Answer==true then %Step one of the loop. Check if the player is dead.
+		   GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
+		   {LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
+		else
+		   if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
+		      GS1={UpdateTtw H GameState}
+		      {LaunchTurnByTurn T GS1 GUI}
+		   else 
+		      {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
+		      GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
+		      GS3={ChargeItem H GS2 GUI} %Step three
+		      GS4={FireItem H GS3 GUI} %Step four
+		      GS5={MineExplode H GS4 GUI} %Step five
+		      {LaunchTurnByTurn T GS5 GUI}
+		   end
 		end
 	     end
 	  end
@@ -234,57 +271,59 @@ define
     end
 
     proc {LaunchSimultaneous Players GameState GUI}
-        proc {Turn Player}
-            Answer ID Position Direction Item KindFire Mine in 
-            if (GameState.firstRound==true) then
-                {Send Player.port dive}
-            end
-            {Send isDead(?Answer)}
-	        {Wait Answer}
-            if (Answer == false) then
-                {SimulateThinking}
-                {Send Player.port move(?ID ?Position ?Direction)}
-                {Wait ID} {Wait Position} {Wait Direction} 
-                if (Direction==Surface) then
-                    {Delay Input.turnSurface}
-                    {Send GUI_Port surface(Player.id)}
-                    {Turn Player}
-                else 
-                    {Send isDead(?Answer)}
-	                {Wait Answer}
-                    if (Answer == false) then
-                        {SimulateThinking}
-                        {Send Player.port chargeItem(?ID ?Item)}
-		                {Wait ID} {Wait Item}
+       proc {Turn Player}
+	  Answer ID Position Direction Item KindFire Mine GS1 in 
+	  if (GameState.firstRound==true) then
+	     {Send Player.port dive}
+	  end
+	  {Send Player.port isDead(?Answer)}
+	  {Wait Answer}
+	  if (Answer == false) then
+	     {SimulateThinking}
+	     {Send Player.port move(?ID ?Position ?Direction)}
+	     {Wait ID} {Wait Position} {Wait Direction} 
+	     if (Direction=='Surface' ) then
+		{Delay Input.turnSurface}
+		{Send GUI surface(Player.id)}
+		{Turn Player}
+	     else 
+		{Send Player.port isDead(?Answer)}
+		{Wait Answer}
+		if (Answer == false) then
+		   {SimulateThinking}
+		   {Send Player.port chargeItem(?ID ?Item)}
+		   {Wait ID} {Wait Item}
 		                %{Broadcast}
-                        {Send isDead(?Answer)}
-	                    {Wait Answer}
-                        if (Answer == false) then
-                            {SimulateThinking}
-                            {Send Player.port fireItem(?ID ?KindFire)}
-		                    {Wait ID} {Wait KindFire}
+		   {Send Player.port isDead(?Answer)}
+		   {Wait Answer}
+		   if (Answer == false) then
+		      {SimulateThinking}
+		      {Send Player.port fireItem(?ID ?KindFire)}
+		      {Wait ID} {Wait KindFire}
                             %{Broadcast}
-                            {Send isDead(?Answer)}
-	                        {Wait Answer}
-                            if (Answer == false) then
-                                {SimulateThinking}
-                                {Send Player.port fireMine(?ID ?Mine)}
-		                        {Wait ID} {Wait Mine}
+		      {Send Player.port isDead(?Answer)}
+		      {Wait Answer}
+		      if (Answer == false) then
+			 {SimulateThinking}
+			 {Send Player.port fireMine(?ID ?Mine)}
+			 {Wait ID} {Wait Mine}
                                 %{Broadcast}
-                                if(GameState.firstRound==true) then
-                                    {AdjoinList GameState [firstRound#false]}
-                                end
-                                if(GameState.alive > 1) then %parametre que je pense interessant a ajouter dans GameState qu'il faudra vrmt coder demain
-                                    {Turn Player}
-                                end
-                            end
-                        end
-                    end    
-                end
-            end
-        end
+			 if(GameState.firstRound==true) then
+			    GS1={AdjoinList GameState [firstRound#false]}
+			 end
+			 if(GameState.alive > 1) then %parametre que je pense interessant
+			    {Turn Player}
+			 else
+			    skip
+			 end
+		      end
+		   end
+		end    
+	     end
+	  end
+       end
     in
-        {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
+       {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
     end
 
     %Send Message to all players 
@@ -296,19 +335,17 @@ define
     
      
     proc{InitialPosition RecordPlayers}
-        ID
-        Position
+       ID
+       Position
     in
-        case RecordPlayers of nil then skip
-        [] H|T then
-	    {Send H.port initPosition(?ID ?Position)}
-	    {Wait ID}
-	    {Wait Position}
-	    {Send GUI_Port initPlayer(ID Position)}  
-        end
+       case RecordPlayers of nil then skip
+       [] H|T then
+	  {Send H.port initPosition(?ID ?Position)}
+	  {Wait ID}
+	  {Wait Position}
+	  {Send GUI_Port initPlayer(ID Position)}  
+       end
     end
-
-in
 
     %Lancement du GUI
     GUI_Port = {GUI.portWindow}

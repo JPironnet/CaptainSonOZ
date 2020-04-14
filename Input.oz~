@@ -1,3 +1,5 @@
+%Input.Oz
+%Don't change any names, change only the values
 functor
 export
    isTurnByTurn:IsTurnByTurn
