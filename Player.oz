@@ -3,6 +3,7 @@ functor
 import
    Input
    OS
+   System(showInfo:Print)
 export
    portPlayer:StartPlayer
 define
@@ -114,7 +115,7 @@ in
 	 
       [] sayDamageTaken(ID Damage LifeLeft)|T then
 	 {TreatStream T PlayerState}
-	 
+      [] _|T then {TreatStream T PlayerState}
       end
    end
 
@@ -185,7 +186,7 @@ in
       Poles Dir NewPlayerState in
       Poles= ['East' 'North' 'South' 'West' 'Surface']
       Dir={OS.rand} mod 5+1
-      ID=NewPlayerState.id
+      ID=PlayerState.id
       Direction={Nth Poles Dir}
       if Dir==2 then %If it's North
 	 Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
@@ -353,14 +354,14 @@ in
    end
 
    %Check if the player is dead or not
-   %Binds Anwser as follow : Answer::=true|false
+   %Binds Anwser as follow : Answer::=true(1)|false(0)
    %Returns the state of the player
    fun{IsDead Answer PlayerState}
       NewPlayerState in
       if PlayerState.life==0 then
-	 Answer=true
+	 Answer=1
       else
-	 Answer=false
+	 Answer=0
       end
       NewPlayerState=PlayerState
       NewPlayerState
