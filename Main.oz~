@@ -228,25 +228,42 @@ in
     proc{LaunchTurnByTurn Players GameState GUI}
        if GameState.alive==1 then skip %it is the end of the game
        else
-	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
-	  [] H|T then
-	     Answer GS1 GS2 GS3 GS4 GS5 in
-	     {Send H.port isDead(?Answer)}
-	     {Wait Answer}
-	     if Answer==true then %Step one of the loop. Check if the player is dead.
-		GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
-		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
+	  case Players of nil then
+	     if GameState.firstRound==true then
+		GS0 in
+		GS0={AdjoinList GameState [firstRound#false]}
+		{LaunchTurnByTurn GS0.playerslist GS0 GUI}
 	     else
-		if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
-		   GS1={UpdateTtw H GameState}
-		   {LaunchTurnByTurn T GS1 GUI}
-		else 
-		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
-		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		   GS3={ChargeItem H GS2 GUI} %Step three
-		   GS4={FireItem H GS3 GUI} %Step four
-		   GS5={MineExplode H GS4 GUI} %Step five
-		   {LaunchTurnByTurn T GS5 GUI}
+		{LaunchTurnByTurn GameState.playerslist GameState GUI}
+	     end
+	  [] H|T then
+	     if GameState.firstRound==true then
+		ID Position in
+		{Send H.port dive}
+		{Send H.port initPosition(?ID ?Position)}
+		{Wait ID}
+		{Wait Position}
+		{Send GUI initPlayer(ID Position)}
+		{LaunchTurnByTurn T GameState GUI}
+	     else
+		Answer GS1 GS2 GS3 GS4 GS5 in
+		{Send H.port isDead(?Answer)}
+		{Wait Answer}
+		if Answer==true then %Step one of the loop. Check if the player is dead.
+		   GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
+		   {LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
+		else
+		   if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
+		      GS1={UpdateTtw H GameState}
+		      {LaunchTurnByTurn T GS1 GUI}
+		   else 
+		      {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
+		      GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
+		      GS3={ChargeItem H GS2 GUI} %Step three
+		      GS4={FireItem H GS3 GUI} %Step four
+		      GS5={MineExplode H GS4 GUI} %Step five
+		      {LaunchTurnByTurn T GS5 GUI}
+		   end
 		end
 	     end
 	  end

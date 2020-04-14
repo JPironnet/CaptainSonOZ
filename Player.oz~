@@ -31,7 +31,7 @@ define
 
    CreateStatePlayer
    IsVisited
-   IsIsland
+   IsPositionOk
    IsLimitOfMap
    RandomPosition   
    RandomRowOrColumn
@@ -42,7 +42,7 @@ in
    
    proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
-      [] initPosition(ID Position)|T then
+      [] initPosition(?ID ?Position)|T then
 	 NewPlayerState in
 	 NewPlayerState={InitPosition ID Position PlayerState}
 	 {TreatStream T NewPlayerState}
@@ -170,17 +170,12 @@ in
     %Initialize the position of the player
     %Returns the new state of the player 
    fun{InitPosition ID Position PlayerState}
-      Row Column NewState
+      NewState
    in
       ID=PlayerState.id
-      Row = {OS.rand} mod Input.nRow+1 %choose a random row between 1 and NRow
-      Column = {OS.rand} mod Input.nColumn+1 %choose a random column between 1 and NColumn
-      Position=pt(x:Row y:Column)
-      if {IsIsland Row Column} then {InitPosition ID Position PlayerState}
-      else
-	 NewState={AdjoinList PlayerState [position#Position visited#Position]}
-	 NewState
-      end
+      Position={RandomPosition}
+      NewState={AdjoinList PlayerState [position#Position visited#Position]}
+      NewState
    end
 
    %ID, Position and Direction are binds as follow :
@@ -194,7 +189,7 @@ in
       Direction={Nth Poles Dir}
       if Dir==2 then %If it's North
 	 Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
-	 if {IsIsland Position.x Position.y} then %if it's an island
+	 if {IsPositionOk Position.x Position.y}==false then %if it's an island
 	    {Move ID Position Direction PlayerState} 
 	 else 
 	    if {IsVisited Position.x Position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
@@ -205,7 +200,7 @@ in
 	 end
       elseif Dir==3 then
 	 Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
-	 if {IsIsland Position.x Position.y} then
+	 if {IsPositionOk Position.x Position.y}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited Position.x Position.y PlayerState.visited} then 
@@ -217,7 +212,7 @@ in
 	 end
       elseif Dir==1 then
 	 Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
-	 if {IsIsland Position.x Position.y} then
+	 if {IsPositionOk Position.x Position.y}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited Position.x Position.y PlayerState.visited} then 
@@ -229,7 +224,7 @@ in
 	 end
       elseif Dir==4 then
 	 Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
-	 if {IsIsland Position.x Position.y} then
+	 if {IsPositionOk Position.x Position.y}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited Position.x Position.y PlayerState.visited} then 
@@ -461,10 +456,11 @@ in
       Row Column Position in
       Row = {OS.rand} mod Input.nRow+1
       Column = {OS.rand} mod Input.nColumn+1
-      if {IsIsland Row Column} then {RandomPosition}
-      else
+      if {IsPositionOk Row Column} then
 	 Position=pt(x:Row y:Column)
 	 Position
+      else
+	 {RandomPosition}
       end
    end
 
@@ -483,36 +479,20 @@ in
    end
 
    fun{IsLimitOfMap Row Column}
-       if Row>Input.nRow then 1
-       elseif Column>Input.nColumn then 1
-       else 0
-       end
+      if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then false
+      else true 
+      end
    end
    
-    %Check if the position is an island/limit of the map or not (1 or 0)
-    %Returns true if it's an island or the limit of the map, false otherwise
-   fun{IsIsland Row Column}
-      fun{HelpII Row Column Acc1 Acc2 Map}
-	 if {IsLimitOfMap Row Column}==1 then true
-	 else
-	    case Map of H|T then
-	       if Acc1==Row then
-		  if Acc2==Column then
-		     if H==1 then true
-		     else false
-		     end
-		  else
-		     if Acc2==1 then {HelpII Row Column Acc1 Acc2+1 H.2}
-		     else {HelpII Row Column Acc1 Acc2+1 T}
-		     end
-		  end
-	       else {HelpII Row Column Acc1+1 Acc2 T}
-	       end
-	    end
+    %Check if the position is ok (if the position is not out of the map and if it is not an island) 
+    %Returns true if it is water and in the map, false otherwise
+   fun{IsPositionOk Row Column}
+      if {Nth {Nth Input.map Row} Column}==1 then false
+      else
+	 if {IsLimitOfMap Row Column} then false
+	 else true
 	 end
       end
-   in
-      {HelpII Row Column 1 1 Input.map}
    end 
 
     %Checks if the submarine has been already visited the <Position> given by X and Y

@@ -42,7 +42,7 @@ in
    
    proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
-      [] initPosition(?ID ?Position)|T then
+      [] initPosition(ID Position)|T then
 	 NewPlayerState in
 	 NewPlayerState={InitPosition ID Position PlayerState}
 	 {TreatStream T NewPlayerState}

@@ -82,12 +82,12 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 4
+   MaxDamage = 6
 
 %%%% Number of load for each item %%%%
 
-   Missile = 3
-   Mine = 3
+   Missile = 2
+   Mine = 1
    Sonar = 3
    Drone = 3
 
