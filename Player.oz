@@ -2,6 +2,7 @@
 functor
 import
    Input
+   OS
 export
    portPlayer:StartPlayer
 define
@@ -27,6 +28,14 @@ define
    SayAnswerSonar
    SayDeath
    SayDamageTaken
+
+   CreateStatePlayer
+   IsVisited
+   IsIsland
+   RandomPosition   
+   RandomRowOrColumn
+   HelpII
+
 
 in
    proc{TreatStream Stream PlayerState} 
@@ -72,37 +81,36 @@ in
       [] saySurface(ID)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayCharge(ID KindItem) then
+      [] sayCharge(ID KindItem)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayMinePlaced(ID) then
-	 
-      [] sayMissileExplode(ID Position ?Message) then
+      [] sayMinePlaced(ID)|T then
+        {TreatStream T PlayerState}
+      [] sayMissileExplode(ID Position ?Message)|T then
 	 NewPlayerState in
 	 NewPlayerState={SayMissileExplode ID Position PlayerState ?Message} 
 	 {TreatStream T NewPlayerState}
-	 
-      [] sayMineExplode(ID Position ?Message) then
+      [] sayMineExplode(ID Position ?Message)|T then
 	 NewPlayerState in
 	 NewPlayerState={SayMineExplode ID Position PlayerState ?Message} 
 	 {TreatStream T NewPlayerState}
 	 
-      [] sayPassingDrone(Drone ?ID ?Answer) then
+      [] sayPassingDrone(Drone ?ID ?Answer)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayAnswerDrone(Drone ID Answer) then
+      [] sayAnswerDrone(Drone ID Answer)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayPassingSonar(?ID ?Answer)then
+      [] sayPassingSonar(?ID ?Answer)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayAnswerSonar(ID Answer) then
+      [] sayAnswerSonar(ID Answer)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayDeath(ID) then
+      [] sayDeath(ID)|T then
 	 {TreatStream T PlayerState}
 	 
-      [] sayDamageTaken(ID Damage LifeLeft) then
+      [] sayDamageTaken(ID Damage LifeLeft)|T then
 	 {TreatStream T PlayerState}
 	 
       end
@@ -163,8 +171,8 @@ in
       Row Column NewState
    in
       ID=PlayerState.id
-      Row = {OS.rand} mod Input.NRow %choose a random row between 0 and NRow
-      Column = {OS.rand} mod Input.NColumn %choose a random column between 0 and NColumn
+      Row = {OS.rand} mod Input.nRow %choose a random row between 0 and NRow
+      Column = {OS.rand} mod Input.nColumn %choose a random column between 0 and NColumn
       Position=pt(x:Row y:Column)
       if {IsIsland Row Column} then {InitPosition}
       else
@@ -183,10 +191,10 @@ in
       ID=PlayerState.id
       Direction={Nth Poles Dir}
       if Dir==2 then %If it's North
-	 if {IsIsland PlayerState.position.x-1 Y} then %if it's an island
+	 if {IsIsland PlayerState.position.x-1 PlayerState.position.y} then %if it's an island
 	    {Move Position Visited} 
 	 else 
-	    if {IsVisited Position.x-1 Y PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	    if {IsVisited Position.x-1 Position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
 	    else
 	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -236,7 +244,7 @@ in
     %Returns the new state of the player
    fun{Dive PlayerState}
       NewPlayerState in
-      NewPlayerState={AdjointList PlayerState [surface#false]}
+      NewPlayerState={AdjoinList PlayerState [surface#false]}
       NewPlayerState
    end
 
@@ -244,11 +252,12 @@ in
    %ID::=<id> and KindItem::=null|missile|mine|sonar|drone
    %Returns the new state of the player
    fun{ChargeItem ?ID ?KindItem PlayerState}
+      ID KindItem Choice in
       ID = PlayerState.id
       Choice = {OS.rand} mod 4 + 1
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
-	    {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+	    %{Print} il faut créer une fonction qui print sur le jeu la création de l'objet
 	    KindItem = mine
 	    {AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
 	 else 
@@ -257,7 +266,7 @@ in
 	 end
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
-	    {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+	    %{Print} il faut créer une fonction qui print sur le jeu la création de l'objet
 	    KindItem = missile
 	    {AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
 	 else 
@@ -267,7 +276,7 @@ in
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
 	    {AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
-	    {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+	    %{Print} il faut créer une fonction qui print sur le jeu la création de l'objet
 	    KindItem = sonar
 	 else 
 	    {AdjoinList PlayerState [sonarCharge#PlayerState.sonarCharge+1]}
@@ -276,7 +285,7 @@ in
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
 	    {AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
-	    {Print} %il faut créer une fonction qui print sur le jeu la création de l'objet
+	    %{Print} il faut créer une fonction qui print sur le jeu la création de l'objet
 	    KindItem = drone
 	 else 
 	    {AdjoinList PlayerState [droneCharge#PlayerState.droneCharge+1]}
@@ -380,7 +389,7 @@ in
 	 Message=message(id:NewPlayerState.id damage:0 lifeleft:NewPlayerState.life) %there is no life anymore
 	 NewPlayerState
       elseif Manhattan==1 then
-	 if PlayerState.life==1
+	 if PlayerState.life==1 then
 	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
 	    Message=message(id:NewPlayerState.id damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
 	    NewPlayerState
@@ -390,7 +399,7 @@ in
 	    NewPlayerState
 	 end
       else
-	 if PlayerState.life=<2
+	 if PlayerState.life=<2 then
 	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
 	    Message=message(id:NewPlayerState.id damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
 	    NewPlayerState
@@ -440,8 +449,8 @@ in
    %Returns a position and Position::=pt(x:<Row> y:<Column>)
    fun {RandomPosition}
       Row Column Position in
-      Row = {OS.rand} mod Input.NRow+1
-      Column = {OS.rand} mod Input.NColumn+1
+      Row = {OS.rand} mod Input.nRow+1
+      Column = {OS.rand} mod Input.nColumn+1
       if {IsIsland Row Column} then {RandomPosition}
       else
 	 Position=pt(x:Row y:Column)
@@ -453,11 +462,11 @@ in
       Choice Drone Result in  
       Choice = {OS.rand} mod 2
       if (Choice==0) then
-	 Result = {OS.rand} mod Input.NRow
+	 Result = {OS.rand} mod Input.nRow
 	 Drone = drone(row:Result)
 	 Drone 
       else 
-	 Result = {OS.rand} mod Input.NColumn
+	 Result = {OS.rand} mod Input.nColumn
 	 Drone = drone(column:Result)
 	 Drone 
       end
@@ -466,10 +475,11 @@ in
     %Check if the position is an island/limit of the map or not (1 or 0)
     %Returns true if it's an island or the limit of the map, false otherwise
    fun{IsIsland Row Column}
-      if Row>Input.NRow then true
+      if Row>Input.nRow then true
       else
-	 if Column>Input.Ncolumn then true
+	 if Column>Input.nColumn then true
 	 else
+        
 	    fun{HelpII Row Column Acc1 Acc2 Map}
 	       case Map of H|T then
 		  if Acc1==Row then

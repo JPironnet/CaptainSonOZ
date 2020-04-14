@@ -1,9 +1,11 @@
 %Main.Oz
+declare
 functor
 import
     GUI
     Input
     PlayerManager
+    OS
 define
     GUI_Port
     RecordPlayers 
@@ -36,7 +38,7 @@ define
     fun{CreateGameState RecordPlayers}
        GameState in
        GameState= gamestate(playerslist:RecordPlayers
-			    playersalive:Input.nbPlayer
+			    alive:Input.nbPlayer
 			    firstRound:true
 			   )
        GameState
@@ -66,20 +68,21 @@ define
     %Check if Direction is Surface or not and sends to GUI some informations
     %Return the new state of the game
     fun{Move Player GameState GUI}
-       {Send Player.port move(?ID ?Position ?Direction)}
-       {Wait ID} {Wait Position} {Wait Direction}
-       if Direction=='Surface' then
-	  NewPlayer NewList NewGameState in
-	  {Send GUI surface(ID)} %the submarine has made surface
-	  NewPlayer={AdjoinList Player turnToWait#Input.turnSurface}
-	  NewList={CreateNewList NewPlayer GameState.playerslist}
-	  NewGameState={AdjoinList GameState [playerslist#NewList]}
-	  NewGameState
-       else
-	  {Send GUI movePlayer(ID Position)} %the submarine moves
-	  NewGameState=GameState
-	  NewGameState
-       end
+        ID Position Direction NewGameState in
+        {Send Player.port move(?ID ?Position ?Direction)}
+        {Wait ID} {Wait Position} {Wait Direction}
+        if Direction=='Surface' then
+	        NewPlayer NewList NewGameState in
+	        {Send GUI surface(ID)} %the submarine has made surface
+	        NewPlayer={AdjoinList Player turnToWait#Input.turnSurface}
+	        NewList={CreateNewList NewPlayer GameState.playerslist}
+	        NewGameState={AdjoinList GameState [playerslist#NewList]}
+	        NewGameState
+        else
+	        {Send GUI movePlayer(ID Position)} %the submarine moves
+	        NewGameState=GameState
+	        NewGameState
+        end
     end
 
 %Create a new list to update GameState.playerslist
@@ -100,17 +103,19 @@ define
     %Item::=null|mine|missile|sonar|drone
     %Return the state of the game
     fun{ChargeItem Player GameState GUI}
-       {Send Player.port chargeItem(?ID ?Item)}
-       {Wait ID}
-       {Wait Item}
-       %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
-       GameState
+        ID Item in
+        {Send Player.port chargeItem(?ID ?Item)}
+        {Wait ID}
+        {Wait Item}
+        %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
+        GameState
     end
 
     %Sends sayMissileExplode or sayMineExplode and waits until Message is bind.
     %Message ::= message(id:<id> damage:0|1|2 lifeleft:<life>)
     %Returns the new state of the game
     fun{FireMissileOrMine ID KindFire PlayersList GameState GUI}
+       Message in 
        case PlayersList of nil then GameState
        [] H|T then
 	  if {Label KindFire}==missile then
@@ -142,17 +147,18 @@ define
     %If KindFire is a missile, calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{FireItem Player GameState GUI}
-       {Send Player.port fireItem(?ID ?KindFire)}
-       {Wait ID}
-       {Wait KindFire}
-       if {Label KindFire}==missile then
-	  NewGameState in
-	  NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
-	  NewGameState
-       elseif {Label KindFire}==mine then
-	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
-	  GameState
-       end
+        ID KindFire in
+        {Send Player.port fireItem(?ID ?KindFire)}
+        {Wait ID}
+        {Wait KindFire}
+        if {Label KindFire}==missile then
+	        NewGameState in
+	        NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
+	        NewGameState
+        elseif {Label KindFire}==mine then
+	        {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
+	        GameState
+        end
     end
 
     %Sends to the port of the player fireMine
@@ -162,16 +168,17 @@ define
     %If the player has a mine, the mine explodes, and calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{MineExplode Player GameState GUI}
-       {Send H.port fireMine(?ID ?Mine)}
-       {Wait ID}
-       {Wait Mine}
-       if Mine \= nil then
-	  NewGameState in
-	  NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
-	  {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
-       else
-	  GameState
-       end
+        ID Mine in 
+        {Send Player.port fireMine(?ID ?Mine)}
+        {Wait ID}
+        {Wait Mine}
+        if Mine \= nil then
+	        NewGameState in
+	        NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
+	        {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
+        else
+	        GameState
+        end
     end
 
     %Removes Player of PlayerList because he is dead
@@ -201,9 +208,9 @@ define
     proc{LaunchTurnByTurn Players GameState GUI}
        if GameState.playeralive==1 then skip %it is the end of the game
        else
-	  case Players of nil then {LauchTurnByTurn GameState.playerslist GameState GUI}
+	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
-	     GS1 GS2 GS3 GS4 GS5 in
+	     Answer GS1 GS2 GS3 GS4 GS5 in
 	     {Send isDead(?Answer)}
 	     {Wait Answer}
 	     if Answer==true then %Step one of the loop. Check if the player is dead.
@@ -228,6 +235,7 @@ define
 
     proc {LaunchSimultaneous Players GameState GUI}
         proc {Turn Player}
+            Answer ID Position Direction Item KindFire Mine in 
             if (GameState.firstRound==true) then
                 {Send Player.port dive}
             end
@@ -266,7 +274,7 @@ define
                                 if(GameState.firstRound==true) then
                                     {AdjoinList GameState [firstRound#false]}
                                 end
-                                if(GameState.alive > 1) %parametre que je pense interessant a ajouter dans GameState qu'il faudra vrmt coder demain
+                                if(GameState.alive > 1) then %parametre que je pense interessant a ajouter dans GameState qu'il faudra vrmt coder demain
                                     {Turn Player}
                                 end
                             end
@@ -276,7 +284,7 @@ define
             end
         end
     in
-        {List.forAll PlayerList (proc {$ Player} thread {Turn Player} end end)} 
+        {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
     end
 
     %Send Message to all players 
@@ -286,6 +294,20 @@ define
        end
     end
     
+     
+    proc{InitialPosition RecordPlayers}
+        ID
+        Position
+    in
+        case RecordPlayers of nil then skip
+        [] H|T then
+	    {Send H.port initPosition(?ID ?Position)}
+	    {Wait ID}
+	    {Wait Position}
+	    {Send GUI_Port initPlayer(ID Position)}  
+        end
+    end
+
 in
 
     %Lancement du GUI
@@ -297,20 +319,8 @@ in
     RecordPlayers = {GeneratePlayers}
 
 
-
-    %Ask players ti choos an initial position and send to GUI 
-    proc{InitialPosition RecordPlayers}
-        ID
-        Position
-    in
-        case RecordsPlayers of nil then skip
-        [] H|T then
-	    {Send H.port initPosition(?ID ?Position)}
-	    {Wait ID}
-	    {Wait Position}
-	    {Send GUI_Port initPlayer(ID Position)}  
-        end
-    end
+    %Ask players to choose an initial position and send to GUI
+    {InitialPosition RecordPlayers}
     
     %Creation de l'etat de la partie
     GameState={CreateGameState RecordPlayers}
@@ -322,4 +332,5 @@ in
         {LaunchSimultaneous RecordPlayers GameState GUI_Port}
     end
 end
+
 
