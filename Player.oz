@@ -60,6 +60,7 @@ in
 	 
       [] chargeItem(ID KindItem)|T then
 	 NewPlayerState in
+	 {Print 'Je suis dans TreatStream pour chargeItem'}
 	 NewPlayerState={ChargeItem ID KindItem PlayerState} 
 	 {TreatStream T NewPlayerState}
 
@@ -188,49 +189,55 @@ in
       Dir={OS.rand} mod 5+1
       ID=PlayerState.id
       Direction={Nth Poles Dir}
-      if Dir==2 then %If it's North
-	 Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
-	 if {IsPositionOk Position.x Position.y}==false then %if it's an island
+      if Dir==2 then
+	 {Print 'c nord'}
+	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==false then %if it's an island
 	    {Move ID Position Direction PlayerState} 
 	 else 
-	    if {IsVisited Position.x Position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
 	    else
+	       {Print 'cc'}
+	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       elseif Dir==3 then
-	 Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
-	 if {IsPositionOk Position.x Position.y}==false then
+	 {Print 'c sud'}
+	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited Position.x Position.y PlayerState.visited} then 
+	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited} then
 	       {Move ID Position Direction PlayerState} 
 	    else
+	       {Print 'cc'}
+	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       elseif Dir==1 then
-	 Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
-	 if {IsPositionOk Position.x Position.y}==false then
+	 {Print 'Cest est'}
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited Position.x Position.y PlayerState.visited} then 
+	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited} then
 	       {Move ID Position Direction PlayerState} 
 	    else
+	       {Print 'cc'}
+	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       elseif Dir==4 then
-	 Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
-	 if {IsPositionOk Position.x Position.y}==false then
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==false then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited Position.x Position.y PlayerState.visited} then 
+	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited} then
 	       {Move ID Position Direction PlayerState} 
 	    else
+	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
@@ -255,11 +262,13 @@ in
    %Returns the new state of the player
    fun{ChargeItem ID KindItem PlayerState}
       NewPlayerState Choice in
+      {Print 'suis la'}
       ID = PlayerState.id
       Choice = {OS.rand} mod 4 + 1
+      {Print 'Je suis dans la fonction chargeItem Player.oz, Choice a ete choisi'}
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
-	    KindItem = mine
+	    KindItem ='mine'
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
 	    NewPlayerState
 	 else 
@@ -269,7 +278,7 @@ in
 	 end
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
-	    KindItem = missile
+	    KindItem = 'missile'
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
 	    NewPlayerState
 	 else 
@@ -279,7 +288,7 @@ in
 	 end
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
-	    KindItem = sonar
+	    KindItem = 'sonar'
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
 	    NewPlayerState
 	 else
@@ -289,7 +298,7 @@ in
 	 end
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
-	    KindItem = drone
+	    KindItem = 'drone'
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
 	    NewPlayerState
 	 else
@@ -488,7 +497,10 @@ in
     %Check if the position is ok (if the position is not out of the map and if it is not an island) 
     %Returns true if it is water and in the map, false otherwise
    fun{IsPositionOk Row Column}
-      if {Nth {Nth Input.map Row} Column}==1 then false
+      R C in
+      R={Nth Input.map Row}
+      C={Nth R Column}
+      if C==1 then false
       else
 	 if {IsLimitOfMap Row Column} then false
 	 else true

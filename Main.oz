@@ -89,21 +89,18 @@ in
     %Return the new state of the game
     fun{Move Player GameState GUI}
        ID Position Direction NewGameState in
-       {Print 'je suis appele'}
        {Send Player.port move(?ID ?Position ?Direction)}
-       {Print 'jai move'}
        {Wait ID} {Wait Position} {Wait Direction}
-       {Print 'jai recu'}
        if Direction=='Surface' then
-	  {Print 'je suis surface'}
-	  NewPlayer NewList NewGameState in
+	  {Print 'Je suis surface, dans Move Main.oz'}
+	  NewPlayer NewList in
 	  {Send GUI surface(ID)} %the submarine has made surface
 	  NewPlayer={AdjoinList Player turnToWait#Input.turnSurface}
 	  NewList={CreateNewList NewPlayer GameState.playerslist}
 	  NewGameState={AdjoinList GameState [playerslist#NewList]}
 	  NewGameState
        else
-	  {Print 'je suis pas surface'}
+	  {Print 'Je ne suis pas surface dans Move Main.oz'}
 	  {Send GUI movePlayer(ID Position)} %the submarine moves
 	  NewGameState=GameState
 	  NewGameState
@@ -128,12 +125,15 @@ in
     %Item::=null|mine|missile|sonar|drone
     %Return the state of the game
     fun{ChargeItem Player GameState GUI}
-        ID Item in
-        {Send Player.port chargeItem(?ID ?Item)}
-        {Wait ID}
-        {Wait Item}
+       ID KindItem in
+       {Print 'Je suis dans chargeItem Main.oz'}
+       {Send Player.port chargeItem(?ID ?KindItem)}
+       {Print 'Jattends dans chargeItem Main.oz'}
+       {Wait ID}
+       {Wait KindItem}
+       {Print 'Jai recu ID et KindItem dans ChargeItem Main.oz'}
         %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
-        GameState
+       GameState
     end
 
     %Sends sayMissileExplode or sayMineExplode and waits until Message is bind.
@@ -245,18 +245,18 @@ in
 		 
 		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
 	     else
-		{Print 'je suis vivant'}
+		{Print 'Je suis vivant'}
 		if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
 		   GS1={UpdateTtw H GameState}
-		   {Print 'je ne peux pas move'}
+		   {Print 'CanMove est false'}
 		   {LaunchTurnByTurn T GS1 GUI}
 		else
-		   {Print 'je peux move'}
+		   {Print 'CanMove est true'}
 		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
-		   {Print 'j ai plonge'}
 		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		   {Print 'Jai move'}
+		   {Print 'GS2 est ok, le player a bouge'}
 		   GS3={ChargeItem H GS2 GUI} %Step three
+		   {Print 'GS3 est ok, le player a charge un item'}
 		   GS4={FireItem H GS3 GUI} %Step four
 		   GS5={MineExplode H GS4 GUI} %Step five
 		   {LaunchTurnByTurn T GS5 GUI}
