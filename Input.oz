@@ -86,7 +86,7 @@ in
 
 %%%% Number of load for each item %%%%
 
-   Missile = 2
+   Missile = 1
    Mine = 1
    Sonar = 3
    Drone = 3

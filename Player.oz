@@ -61,7 +61,6 @@ in
 	 
       [] chargeItem(ID KindItem)|T then
 	 NewPlayerState in
-	 {Print 'Je suis dans TreatStream pour chargeItem'}
 	 NewPlayerState={ChargeItem ID KindItem PlayerState} 
 	 {TreatStream T NewPlayerState}
 
@@ -177,7 +176,7 @@ in
    in
       ID=PlayerState.id
       Position={RandomPosition}
-      NewState={AdjoinList PlayerState [position#Position visited#Position]}
+      NewState={AdjoinList PlayerState [position#Position visited#[Position]]}
       NewState
    end
 
@@ -188,44 +187,58 @@ in
       Poles Dir NewPlayerState in
       Poles= ['East' 'North' 'South' 'West' 'Surface']
       Dir={OS.rand} mod 5+1
+      {Print 'Le joueur a choisi la direction : '} 
       ID=PlayerState.id
-      Direction={Nth Poles Dir}
       if Dir==2 then
+<<<<<<< HEAD
 	 {Print 'c nord'}
 	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then %if it's an island
+=======
+	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
+>>>>>>> master
 	    {Move ID Position Direction PlayerState} 
-	 else 
-	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
+	 else
+	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
+	       {Move ID Position Direction PlayerState} 
 	    else
-	       {Print 'cc'}
+	       Direction={Nth Poles Dir}
+	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       elseif Dir==3 then
+<<<<<<< HEAD
 	 {Print 'c sud'}
+=======
+>>>>>>> master
 	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited} then
+	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited}==1 then
 	       {Move ID Position Direction PlayerState} 
 	    else
-	       {Print 'cc'}
+	       Direction={Nth Poles Dir}
+	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       elseif Dir==1 then
+<<<<<<< HEAD
 	 {Print 'Cest est'}
+=======
+>>>>>>> master
 	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited} then
+	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited}==1 then
 	       {Move ID Position Direction PlayerState} 
 	    else
-	       {Print 'cc'}
+	       Direction={Nth Poles Dir}
+	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
@@ -235,15 +248,19 @@ in
 	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
-	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited} then
+	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited}==1 then
 	       {Move ID Position Direction PlayerState} 
 	    else
+	       Direction={Nth Poles Dir}
+	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
 	       NewPlayerState
 	    end
 	 end
       else
+	 Direction={Nth Poles Dir}
+	 {Print Direction}
 	 Position=PlayerState.position
 	 NewPlayerState={AdjoinList PlayerState [visited#Position surface#true]}
 	 NewPlayerState
@@ -263,47 +280,57 @@ in
    %Returns the new state of the player
    fun{ChargeItem ID KindItem PlayerState}
       NewPlayerState Choice in
-      {Print 'suis la'}
       ID = PlayerState.id
       Choice = {OS.rand} mod 4 + 1
-      {Print 'Je suis dans la fonction chargeItem Player.oz, Choice a ete choisi'}
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
 	    KindItem ='mine'
+	    {Print 'Le joueur a charge un item, cet item est : '}
+	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
 	    NewPlayerState
 	 else 
 	    KindItem = nil
+	    {Print 'Le joueur n a pas construit un item'}
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#PlayerState.mineCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
 	    KindItem = 'missile'
+	    {Print 'Le joueur a charge un item, cet item est : '}
+	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
 	    NewPlayerState
 	 else 
 	    KindItem = nil
+	    {Print 'Le joueur n a pas construit un item'}
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#PlayerState.missileCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
 	    KindItem = 'sonar'
+	    {Print 'Le joueur a charge un item, cet item est : '}
+	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
 	    NewPlayerState
 	 else
 	    KindItem = nil
+	    {Print 'Le joueur n a pas construit un item'}
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#PlayerState.sonarCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
 	    KindItem = 'drone'
+	    {Print 'Le joueur a charge un item, cet item est : '}
+	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
 	    NewPlayerState
 	 else
 	    KindItem = nil
+	    {Print 'Le joueur n a pas construit un item'}
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#PlayerState.droneCharge+1]}
 	    NewPlayerState
 	 end
@@ -319,32 +346,28 @@ in
       ID=PlayerState.id
       if (PlayerState.mineAmmo > 0) then
 	 KindFire = mine({RandomPosition})
+	 {Print 'Le joueur a pose une mine'}
 	 NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
 	 NewPlayerState
-	 
+      elseif (PlayerState.missileAmmo > 0) then
+	 KindFire = missile({RandomPosition})
+	 {Print 'le joueur a deploye un missile'}
+	 NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
+	 NewPlayerState
+      elseif(PlayerState.droneAmmo > 0) then
+	 KindFire = drone({RandomRowOrColumn})
+	 NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
+	 NewPlayerState
+      elseif(PlayerState.sonarAmmo > 0) then
+	 NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
+	 NewPlayerState
       else 
-	 if (PlayerState.missileAmmo > 0) then
-	    KindFire = missile({RandomPosition})
-	    NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
-	    NewPlayerState
-	 else 
-	    if(PlayerState.droneAmmo > 0) then
-	       KindFire = drone({RandomRowOrColumn})
-	       NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
-	       NewPlayerState
-	    else 
-	       if(PlayerState.sonarAmmo > 0) then
-		  NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
-		  NewPlayerState
-	       else 
-		  KindFire = nil
-		  NewPlayerState=PlayerState
-		  NewPlayerState
-	       end
-	    end
-	 end
-      end        
-   end
+	 KindFire = nil
+	 {Print 'Le joueur n a pas de munition pour tirer'}
+	 NewPlayerState=PlayerState
+	 NewPlayerState
+      end
+   end        
 
    %ID and Mine are bind as follow :
    %Id::=<id> and Mine::=mine(<Position>)|null
@@ -354,8 +377,9 @@ in
       NewPlayerState in
       ID=PlayerState.id
       case PlayerState.mineLocation of nil then
-	 Mine=nil
-	 PlayerState
+	 Mine=null
+	 NewPlayerState=PlayerState
+	 NewPlayerState
       [] H|T then
 	 Mine=H
 	 NewPlayerState={AdjoinList PlayerState [minePlanted#minePlanted-1 mineLocation#T]}
@@ -398,30 +422,37 @@ in
    %Returns the new state of the player
    fun{SayMissileExplode ID Position PlayerState Message}
       NewPlayerState
-      Manhattan in
-      Manhattan = (Position.x-PlayerState.position.x) + (Position.y - PlayerState.position.y)
+      Manhattan
+      IdNew in
+      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+      {Print 'Je suis dans sayMissileExplode dans Player.oz'}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
-	 Message=message(id:NewPlayerState.id damage:0 lifeleft:NewPlayerState.life) %there is no life anymore
+	 IdNew=NewPlayerState.id
+	 Message=message(id:IdNew damage:0 lifeleft:NewPlayerState.life) %there is no damage
 	 NewPlayerState
       elseif Manhattan==1 then
 	 if PlayerState.life==1 then
 	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
-	    Message=message(id:NewPlayerState.id damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
+	    IdNew=NewPlayerState.id
+	    Message=message(id:IdNew damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
 	    NewPlayerState
 	 else
 	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-1]}
-	    Message=message(id:NewPlayerState.id damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
+	    IdNew=NewPlayerState.id
+	    Message=message(id:IdNew damage:1 lifeleft:NewPlayerState.life) %there is one damage
 	    NewPlayerState
 	 end
       else
 	 if PlayerState.life=<2 then
 	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
-	    Message=message(id:NewPlayerState.id damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
+	    IdNew=NewPlayerState.id
+	    Message=message(id:IdNew damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
 	    NewPlayerState
 	 else
 	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-2]}
-	    Message=message(id:NewPlayerState.id damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
+	    IdNew=NewPlayerState.id
+	    Message=message(id:IdNew damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
 	    NewPlayerState
 	 end
       end
@@ -467,9 +498,15 @@ in
       Row Column Position in
       Row = {OS.rand} mod Input.nRow+1
       Column = {OS.rand} mod Input.nColumn+1
+<<<<<<< HEAD
       if {IsPositionOk Row Column} then
 	      Position=pt(x:Row y:Column)
 	      Position
+=======
+      if {IsPositionOk Row Column}==1 then
+	 Position=pt(x:Row y:Column)
+	 Position
+>>>>>>> master
       else
 	      {RandomPosition}
       end
@@ -516,18 +553,26 @@ in
     %Check if the position is ok (if the position is not out of the map and if it is not an island) 
     %Returns true if it is water and in the map, false otherwise
    fun{IsPositionOk Row Column}
+<<<<<<< HEAD
       if {IsLimitOfMap Row Column} then false
 	   elseif {IsSurface Row Column} then false
       else 
          true
       end
+=======
+      if {IsLimitOfMap Row Column}==true then 0
+      else
+	 if {Nth {Nth Input.map Row} Column}==1 then 0
+	 else 1
+	 end
+      end 
+>>>>>>> master
    end
 
-    %Checks if the submarine has been already visited the <Position> given by X and Y
-    %Returns true or false 
    fun{IsVisited X Y List}
-      case List of nil then false
+      case List of nil then 0
       [] H|T then
+<<<<<<< HEAD
 	      if H.x==X then
 	         if H.y==Y then true
 	         else false
@@ -536,6 +581,14 @@ in
 	      end
       else 
          false 
+=======
+	 if H.x==X then
+	    if H.y==Y then 1
+	    else {IsVisited X Y T}
+	    end
+	 else {IsVisited X Y T}
+	 end
+>>>>>>> master
       end
    end
 

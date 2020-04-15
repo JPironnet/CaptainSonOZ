@@ -4,7 +4,8 @@ import
     GUI
     Input
     PlayerManager
-    OS
+   OS
+   System(showInfo:Print)
 define
     GUI_Port
     RecordPlayers 
@@ -87,21 +88,23 @@ in
     %Check if Direction is Surface or not and sends to GUI some informations
     %Return the new state of the game
     fun{Move Player GameState GUI}
-        ID Position Direction NewGameState in
-        {Send Player.port move(?ID ?Position ?Direction)}
-        {Wait ID} {Wait Position} {Wait Direction}
-        if Direction=='Surface' then
-	        NewPlayer NewList NewGameState in
-	        {Send GUI surface(ID)} %the submarine has made surface
-	        NewPlayer={AdjoinList Player turnToWait#Input.turnSurface}
-	        NewList={CreateNewList NewPlayer GameState.playerslist}
-	        NewGameState={AdjoinList GameState [playerslist#NewList]}
-	        NewGameState
-        else
-	        {Send GUI movePlayer(ID Position)} %the submarine moves
-	        NewGameState=GameState
-	        NewGameState
-        end
+       ID Position Direction NewGameState in
+       {Send Player.port move(?ID ?Position ?Direction)}
+       {Wait ID} {Wait Position} {Wait Direction}
+       if Direction=='Surface' then
+	  {Print 'Je suis surface, dans Move Main.oz'}
+	  NewPlayer NewList in
+	  {Send GUI surface(ID)} %the submarine has made surface
+	  NewPlayer={AdjoinList Player turnToWait#Input.turnSurface}
+	  NewList={CreateNewList NewPlayer GameState.playerslist}
+	  NewGameState={AdjoinList GameState [playerslist#NewList]}
+	  NewGameState
+       else
+	  {Print 'Je ne suis pas surface dans Move Main.oz'}
+	  {Send GUI movePlayer(ID Position)} %the submarine moves
+	  NewGameState=GameState
+	  NewGameState
+       end
     end
 
 %Create a new list to update GameState.playerslist
@@ -122,12 +125,15 @@ in
     %Item::=null|mine|missile|sonar|drone
     %Return the state of the game
     fun{ChargeItem Player GameState GUI}
-        ID Item in
-        {Send Player.port chargeItem(?ID ?Item)}
-        {Wait ID}
-        {Wait Item}
+       ID KindItem in
+       {Print 'Je suis dans chargeItem Main.oz'}
+       {Send Player.port chargeItem(?ID ?KindItem)}
+       {Print 'Jattends dans chargeItem Main.oz'}
+       {Wait ID}
+       {Wait KindItem}
+       {Print 'Jai recu ID et KindItem dans ChargeItem Main.oz'}
         %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
-        GameState
+       GameState
     end
 
     %Sends sayMissileExplode or sayMineExplode and waits until Message is bind.
@@ -166,18 +172,18 @@ in
     %If KindFire is a missile, calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{FireItem Player GameState GUI}
-        ID KindFire in
-        {Send Player.port fireItem(?ID ?KindFire)}
-        {Wait ID}
-        {Wait KindFire}
-        if {Label KindFire}==missile then
-	        NewGameState in
-	        NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
-	        NewGameState
-        elseif {Label KindFire}==mine then
-	        {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
-	        GameState
-        end
+       ID KindFire in
+       {Send Player.port fireItem(?ID ?KindFire)}
+       {Wait ID}
+       {Wait KindFire}
+       if {Label KindFire}==missile then
+	  NewGameState in
+	  NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
+	  NewGameState
+       elseif {Label KindFire}==mine then
+	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
+	  GameState
+       end
     end
 
     %Sends to the port of the player fireMine
@@ -227,48 +233,39 @@ in
 
     proc{LaunchTurnByTurn Players GameState GUI}
        if GameState.alive==1 then skip %it is the end of the game
+	   {Print 'Partie finie'}
        else
-	  case Players of nil then
-	     if GameState.firstRound==true then
-		GS0 in
-		GS0={AdjoinList GameState [firstRound#false]}
-		{LaunchTurnByTurn GS0.playerslist GS0 GUI}
-	     else
-		{LaunchTurnByTurn GameState.playerslist GameState GUI}
-	     end
+	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
-	     if GameState.firstRound==true then
-		ID Position in
-		{Send H.port dive}
-		{Send H.port initPosition(?ID ?Position)}
-		{Wait ID}
-		{Wait Position}
-		{Send GUI initPlayer(ID Position)}
-		{LaunchTurnByTurn T GameState GUI}
+	     Answer GS1 GS2 GS3 GS4 GS5 in
+	     {Send H.port isDead(?Answer)}
+	     {Wait Answer}
+	     if Answer==1 then %Step one of the loop. Check if the player is dead.
+		GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
+		 
+		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
 	     else
-		Answer GS1 GS2 GS3 GS4 GS5 in
-		{Send H.port isDead(?Answer)}
-		{Wait Answer}
-		if Answer==true then %Step one of the loop. Check if the player is dead.
-		   GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
-		   {LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
+		{Print 'Je suis vivant'}
+		if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
+		   GS1={UpdateTtw H GameState}
+		   {Print 'CanMove est false'}
+		   {LaunchTurnByTurn T GS1 GUI}
 		else
-		   if {CanMove H}==false then %Step one of the loop. Check if the player can move, if he cannot, GS1 is the udated version of GameState for the next loop with turnToWait-1
-		      GS1={UpdateTtw H GameState}
-		      {LaunchTurnByTurn T GS1 GUI}
-		   else 
-		      {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
-		      GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		      GS3={ChargeItem H GS2 GUI} %Step three
-		      GS4={FireItem H GS3 GUI} %Step four
-		      GS5={MineExplode H GS4 GUI} %Step five
-		      {LaunchTurnByTurn T GS5 GUI}
-		   end
+		   {Print 'CanMove est true'}
+		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
+		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
+		   {Print 'GS2 est ok, le player a bouge'}
+		   GS3={ChargeItem H GS2 GUI} %Step three
+		   {Print 'GS3 est ok, le player a charge un item'}
+		   GS4={FireItem H GS3 GUI} %Step four
+		   GS5={MineExplode H GS4 GUI} %Step five
+		   {LaunchTurnByTurn T GS5 GUI}
 		end
 	     end
 	  end
        end
     end
+    
 
     proc {LaunchSimultaneous Players GameState GUI}
        proc {Turn Player}
@@ -334,16 +331,18 @@ in
     end
     
      
-    proc{InitialPosition RecordPlayers}
+    proc{InitialPosition RecordPlayers GUI}
        ID
        Position
     in
        case RecordPlayers of nil then skip
        [] H|T then
+	  {Send H.port dive}
 	  {Send H.port initPosition(?ID ?Position)}
 	  {Wait ID}
 	  {Wait Position}
-	  {Send GUI_Port initPlayer(ID Position)}  
+	  {Send GUI initPlayer(ID Position)}
+	  {InitialPosition T GUI}
        end
     end
 
@@ -357,16 +356,16 @@ in
 
 
     %Ask players to choose an initial position and send to GUI
-    {InitialPosition RecordPlayers}
+    {InitialPosition RecordPlayers GUI_Port}
     
     %Creation de l'etat de la partie
     GameState={CreateGameState RecordPlayers}
 
     %Lancement de la partie 
     if(Input.isTurnByTurn) then
-        {LaunchTurnByTurn RecordPlayers GameState GUI_Port}
+       {LaunchTurnByTurn RecordPlayers GameState GUI_Port}
     else 
-        {LaunchSimultaneous RecordPlayers GameState GUI_Port}
+       {LaunchSimultaneous RecordPlayers GameState GUI_Port}
     end
 end
 

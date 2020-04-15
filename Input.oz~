@@ -82,7 +82,7 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 6
+   MaxDamage = 10
 
 %%%% Number of load for each item %%%%
 
