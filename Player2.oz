@@ -189,69 +189,70 @@ in
       {Print 'Le joueur a choisi la direction : '} 
       ID=PlayerState.id
       if Dir==2 then
-	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
-	    {Move ID Position Direction PlayerState} 
-	 else
-	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
-	       {Move ID Position Direction PlayerState} 
-	    else
-	       Direction={Nth Poles Dir}
-	       {Print Direction}
-	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
-	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-	       NewPlayerState
-	    end
-	 end
+	      if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
+	         {Move ID Position Direction PlayerState} 
+	      else
+	         if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
+	            {Move ID Position Direction PlayerState} 
+	         else
+	            Direction={Nth Poles Dir}
+	            {Print Direction}
+	            Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
+	            NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+	            NewPlayerState
+	         end
+	      end
       elseif Dir==3 then
-	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
-	    {Move ID Position Direction PlayerState} 
-	 else
-	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited}==1 then
-	       {Move ID Position Direction PlayerState} 
-	    else
-	       Direction={Nth Poles Dir}
-	       {Print Direction}
-	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
-	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-	       NewPlayerState
-	    end
-	 end
+	      if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
+            {Move ID Position Direction PlayerState} 
+	      else
+	         if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited}==1 then
+	            {Move ID Position Direction PlayerState} 
+            else
+               Direction={Nth Poles Dir}
+               {Print Direction}
+               Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
+               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+               NewPlayerState
+            end
+	      end
       elseif Dir==1 then
-	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
-	    {Move ID Position Direction PlayerState} 
-	 else
-	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited}==1 then
-	       {Move ID Position Direction PlayerState} 
-	    else
-	       Direction={Nth Poles Dir}
-	       {Print Direction}
-	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
-	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-	       NewPlayerState
-	    end
-	 end
+	      if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
+	         {Move ID Position Direction PlayerState} 
+	      else
+	         if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited}==1 then
+               {Move ID Position Direction PlayerState} 
+            else
+               Direction={Nth Poles Dir}
+               {Print Direction}
+               Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
+               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+               NewPlayerState
+            end
+         end
       elseif Dir==4 then
-	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
-	    {Move ID Position Direction PlayerState} 
-	 else
-	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited}==1 then
-	       {Move ID Position Direction PlayerState} 
-	    else
-	       Direction={Nth Poles Dir}
-	       {Print Direction}
-	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
-	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-	       NewPlayerState
-	    end
-	 end
+	      if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
+            {Move ID Position Direction PlayerState} 
+         else
+            if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited}==1 then
+               {Move ID Position Direction PlayerState} 
+            else
+               Direction={Nth Poles Dir}
+               {Print Direction}
+               Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
+               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+               NewPlayerState
+            end
+         end
       else
-	 Direction={Nth Poles Dir}
-	 {Print Direction}
-	 Position=PlayerState.position
-	 NewPlayerState={AdjoinList PlayerState [visited#Position surface#true]}
-	 NewPlayerState
+	      Direction={Nth Poles Dir}
+         {Print Direction}
+	      Position=PlayerState.position
+	      NewPlayerState={AdjoinList PlayerState [visited#Position surface#true]}
+	      NewPlayerState
       end
    end
+
 
     %The player is in the water and not at the surface anymore
     %Returns the new state of the player
@@ -267,7 +268,7 @@ in
    fun{ChargeItem ID KindItem PlayerState}
       NewPlayerState Choice in
       ID = PlayerState.id
-      Choice = {OS.rand} mod 4 + 1
+      Choice = {OS.rand} mod 4+1
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
 	    KindItem ='mine'
