@@ -1,10 +1,6 @@
-2) Continuer les petites fonctions de Player et compléter le TreatStream : ok sauf les say mais osef pour le moment
-
 !!!4) check une fonction deja existente pour la valeur absolue pour sayMissileExplode!!!!!!!!!! Si tu sais check j ai pas trouvé moi 
 
-5) si on ne trouve pas quoi faire, ne pas hésiter à commenter un max, rendre lisible, faire des belles spécifications pour les fonctions 
-comme le projet présent sur le drive 
+ 
+- Coder IsSurface dans Player 
 
-----> maintenant qu'on a une base sur quasi tout, essayer de finaliser une première version avec des IA débiles
-
-- Optimiser IsIsland mdr 
+- 

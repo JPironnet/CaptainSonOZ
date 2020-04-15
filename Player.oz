@@ -37,6 +37,7 @@ define
    RandomPosition   
    RandomRowOrColumn
    HelpII
+   IsSurface
 
 
 in
@@ -466,11 +467,11 @@ in
       Row Column Position in
       Row = {OS.rand} mod Input.nRow+1
       Column = {OS.rand} mod Input.nColumn+1
-      if {IsPositionOk Row Column}==1 then
-	 Position=pt(x:Row y:Column)
-	 Position
+      if {IsPositionOk Row Column} then
+	      Position=pt(x:Row y:Column)
+	      Position
       else
-	 {RandomPosition}
+	      {RandomPosition}
       end
    end
 
@@ -487,27 +488,40 @@ in
 	 Drone 
       end
    end
+   
+   %Check si la position fait partie de la liste des points déjà visités, va être pratique pour {Move}
+   %fun{IsVisited Position VisitList}
+      %case VisitList of nil then false
+      %[]pt(x=X y=Y)|NextPoint then 
+         %if (Position.x==X) andthen (Position.y==X) then true
+         %else 
+            %{IsVisited Position NextPoint}
+         %end
+      %end
+   %end
+
+   fun{IsSurface Row Column}
+      %TO DO
+      false
+   end
 
    fun{IsLimitOfMap Row Column}
-      if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then 0
-      else 1
+      if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then false
+      else true
       end
    end
+
+
    
     %Check if the position is ok (if the position is not out of the map and if it is not an island) 
     %Returns true if it is water and in the map, false otherwise
    fun{IsPositionOk Row Column}
-      %R C in
-      %if C==1 then 0
-      %else
-         if {IsLimitOfMap Row Column}==1 then 0
-	      else 
-            1
-            %R={Nth Input.map Row} 
-            %C={Nth R Column}
-	   %   end
+      if {IsLimitOfMap Row Column} then false
+	   elseif {IsSurface Row Column} then false
+      else 
+         true
       end
-   end 
+   end
 
     %Checks if the submarine has been already visited the <Position> given by X and Y
     %Returns true or false 
