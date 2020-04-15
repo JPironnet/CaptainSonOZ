@@ -156,16 +156,17 @@ in
     %If the player has a mine, the mine explodes, and calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{MineExplode Player GameState GUI}
-       ID Mine in 
+       ID Mine Position in 
        {Send Player.port fireMine(?ID ?Mine)}
        {Wait ID}
        {Wait Mine}
        if Mine==null then
 	  {Print 'Le joueur n a pas de mine'}
-	 GameState
+	  GameState
        else
-	  {Print 'Le joueur a une mine et l explose'}
-	 {BroadCastMessage GUI GameState.playerslist sayMineExplode(ID Mine)}
+	  {Print 'Le joueur a une mine et va l exploser'}
+	  Position=Mine
+	  {BroadCastMessage GUI GameState.playerslist sayMineExplode(ID Position)}
 	  {Send GUI removeMine(ID Mine)} %GUI removes the mine at the position Mine.1
 	  GameState
        end
@@ -214,6 +215,7 @@ in
 		   {Print H.turnToWait}
 		   {LaunchTurnByTurn T GS1 GUI}
 		else
+		   {Print '#########################################################'}
 		   {Print 'CanMove est true'}
 		   {Send H.port dive} %If he can move, the player dives BON DU COUP IL VA IDVE A CHAQUE FOIS MM SI IL EST PAS A LA SURFACE AU DEPART
 		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
