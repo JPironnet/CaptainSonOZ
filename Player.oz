@@ -190,12 +190,8 @@ in
       {Print 'Le joueur a choisi la direction : '} 
       ID=PlayerState.id
       if Dir==2 then
-<<<<<<< HEAD
 	 {Print 'c nord'}
-	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then %if it's an island
-=======
 	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
->>>>>>> master
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
@@ -209,10 +205,7 @@ in
 	    end
 	 end
       elseif Dir==3 then
-<<<<<<< HEAD
 	 {Print 'c sud'}
-=======
->>>>>>> master
 	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
@@ -227,10 +220,7 @@ in
 	    end
 	 end
       elseif Dir==1 then
-<<<<<<< HEAD
 	 {Print 'Cest est'}
-=======
->>>>>>> master
 	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
@@ -516,15 +506,9 @@ in
       Row Column Position in
       Row = {OS.rand} mod Input.nRow+1
       Column = {OS.rand} mod Input.nColumn+1
-<<<<<<< HEAD
-      if {IsPositionOk Row Column} then
-	      Position=pt(x:Row y:Column)
-	      Position
-=======
       if {IsPositionOk Row Column}==1 then
 	 Position=pt(x:Row y:Column)
 	 Position
->>>>>>> master
       else
 	      {RandomPosition}
       end
@@ -571,42 +555,23 @@ in
     %Check if the position is ok (if the position is not out of the map and if it is not an island) 
     %Returns true if it is water and in the map, false otherwise
    fun{IsPositionOk Row Column}
-<<<<<<< HEAD
-      if {IsLimitOfMap Row Column} then false
-	   elseif {IsSurface Row Column} then false
-      else 
-         true
-      end
-=======
       if {IsLimitOfMap Row Column}==true then 0
       else
 	 if {Nth {Nth Input.map Row} Column}==1 then 0
 	 else 1
 	 end
       end 
->>>>>>> master
    end
 
    fun{IsVisited X Y List}
       case List of nil then 0
       [] H|T then
-<<<<<<< HEAD
-	      if H.x==X then
-	         if H.y==Y then true
-	         else false
-	         end
-	      else false
-	      end
-      else 
-         false 
-=======
 	 if H.x==X then
 	    if H.y==Y then 1
 	    else {IsVisited X Y T}
 	    end
 	 else {IsVisited X Y T}
 	 end
->>>>>>> master
       end
    end
 
