@@ -19,8 +19,6 @@ define
    CreateNewList
    ChargeItem
    FireItem
-   FireMissileOrMine
-   SendMessage
    MineExplode
    RemoveList
    UpdateListOfPlayers
@@ -131,46 +129,7 @@ in
         %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
        GameState
     end
-
-    fun{SendMessage Player ID KindFire}
-       Message in
-       if {Record.label KindFire}==missile then
-	  {Send Player.port sayMissileExplode(ID KindFire.1 ?Message)} %Send to the port of the player sayMissileExplode with the ID of the player, with Position KindFire.1
-	  {Wait Message}
-	  Message
-       else
-	  {Send Player.port sayMineExplode(ID KindFire.1 ?Message)}
-	  {Wait Message}
-	  Message
-       end
-    end
     
-    %Sends sayMissileExplode or sayMineExplode and waits until Message is bind.
-    %Message ::= message(id:<id> damage:0|1|2 lifeleft:<life>)
-    %Returns the new state of the game
-    fun{FireMissileOrMine ID KindFire PlayersList GameState GUI}
-       Message in
-       case PlayersList of nil then GameState
-       [] H|T then
-	  {Print 'Je suis dans FireMissileOrMine de Main.oz'}
-	  Message={SendMessage H ID KindFire}
-	  {Print 'Jai recu le message dans FireMissileOrMine dans Main.oz'}
-	  if Message.lifeleft==0 then
-	     NewGameState in
-             %{BroadCastMessage GameState.playerslist sayDeath(Message.id)} 
-	     NewGameState={UpdateListOfPlayers H GameState} %removes H of GameState.playerslist because H is dead
-	     {Send GUI lifeUpdate(Message.id Message.lifeleft)}
-	     {Send GUI removePlayer(Message.id)} 
-	     {FireMissileOrMine ID KindFire T NewGameState GUI}
-	  else
-	     {Print 'Il reste de la vie au joueur'}
-	     %{BroadCastMessage GameState.playerslist sayDamageTaken(Message.id Message.damage Message.lifeleft)}
-	     {Send GUI lifeUpdate(Message.id Message.lifeleft)}
-	     {FireMissileOrMine ID KindFire T GameState GUI}
-	  end
-       end
-    end
-       
     %Sends to the port of the player fireItem
     %ID and Mine are binds as follow :
     %ID::=<id> the id of the player who fired the item
@@ -183,15 +142,11 @@ in
        {Wait ID}
        {Wait KindFire}
        if {Label KindFire}==missile then
-	  NewGameState in
-	  NewGameState={FireMissileOrMine ID KindFire GameState.playerslist GameState GUI}
-	  NewGameState
+	  {BroadCastMessage GUI GameState.playerslist sayMissileExplode(ID KindFire.1)}
        elseif {Label KindFire}==mine then
 	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
-	  GameState
-       else
-	  GameState
        end
+       GameState
     end
 
     %Sends to the port of the player fireMine
@@ -201,19 +156,18 @@ in
     %If the player has a mine, the mine explodes, and calls the function FireMissileOrMine
     %Returns the new state of the game
     fun{MineExplode Player GameState GUI}
-       ID Mine NewGameState in 
+       ID Mine in 
        {Send Player.port fireMine(?ID ?Mine)}
        {Wait ID}
        {Wait Mine}
        if Mine==null then
 	  {Print 'Le joueur n a pas de mine'}
-	  NewGameState=GameState
-	  NewGameState
+	 GameState
        else
 	  {Print 'Le joueur a une mine et l explose'}
-	  NewGameState={FireMissileOrMine ID Mine GameState.playerslist GameState GUI}
-	  {Send GUI removeMine(ID Mine.1)} %GUI removes the mine at the position Mine.1
-	  NewGameState
+	 {BroadCastMessage GUI GameState.playerslist sayMineExplode(ID Mine)}
+	  {Send GUI removeMine(ID Mine)} %GUI removes the mine at the position Mine.1
+	  GameState
        end
     end
 
@@ -334,11 +288,47 @@ in
        {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
     end
 
-    %Send Message to all players 
-    proc{BroadCastMessage PlayerList Message}
-       case PlayerList of nil then skip
-       [] H|T then {Send H.port Message}
-       end
+    %Send Say to all players
+    %Return the state of the game
+    proc{BroadCastMessage GUI_port PlayersList Say}
+       Message in
+       case Say
+       of sayMineExplode(ID Position) then
+	  {List.forAll PlayersList 
+	   proc {$ Player} 
+	      {Send Player.port sayMineExplode(ID Position ?Message)} 
+	      {Wait Message}
+	      if (Message \= null) then								
+		 case Message of sayDamageTaken(ID Damage Life) then 
+		    {BroadCastMessage GUI_port PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
+		    {Send GUI_port lifeUpdate(ID Life)}
+		 [] sayDeath(ID) then 
+		    {BroadCastMessage GUI_port PlayersList sayDeath(ID)} % Broadcast
+		    {Send GUI_port removePlayer(ID)}
+		 end
+	      end
+	   end
+	  }
+       [] sayMissileExplode(ID Position) then
+	  {List.forAll PlayersList 
+	   proc {$ Player} 
+	      {Send Player.port sayMissileExplode(ID Position ?Message)} 
+	      {Wait Message}
+	      if (Message \= null) then								
+		 case Message 
+		 of sayDamageTaken(ID Damage Life) then 
+		    {BroadCastMessage GUI_port PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
+		    {Send GUI_port lifeUpdate(ID Life)}
+		 [] sayDeath(ID) then 
+		    {BroadCastMessage GUI_port PlayersList sayDeath(ID)} % Broadcast
+		    {Send GUI_port removePlayer(ID)}
+		 end
+	      end
+	   end
+	  }
+       else
+	  {List.forAll PlayersList (proc {$ Player} {Send Player.port Message} end)}
+       end							
     end
     
      

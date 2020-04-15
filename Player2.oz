@@ -368,7 +368,7 @@ in
 	 NewPlayerState
       [] H|T then
 	 Mine=H
-	 NewPlayerState={AdjoinList PlayerState [minePlanted#minePlanted-1 mineLocation#T]}
+	 NewPlayerState={AdjoinList PlayerState [minePlanted#PlayerState.minePlanted-1 mineLocation#T]}
 	 NewPlayerState
       end
    end
@@ -407,48 +407,57 @@ in
    %Binds <Message> ::=message(id:<id> damage:0|1|2 lifeleft:<life>)
    %Returns the new state of the player
    fun{SayMissileExplode ID Position PlayerState Message}
-      NewPlayerState
-      Manhattan
-      IdNew in
+      NewPlayerState DamageState Manhattan Damage
+   in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'Je suis dans sayMissileExplode dans Player.oz'}
       if Manhattan >= 2 then
-	 NewPlayerState=PlayerState
-	 IdNew=NewPlayerState.id
-	 Message=message(id:IdNew damage:0 lifeleft:NewPlayerState.life) %there is no damage
-	 NewPlayerState
+	 DamageState=PlayerState
+	 Damage=0
+	 Message=null %there is no damage
       elseif Manhattan==1 then
-	 if PlayerState.life==1 then
-	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
-	    IdNew=NewPlayerState.id
-	    Message=message(id:IdNew damage:1 lifeleft:NewPlayerState.life) %there is no life anymore
-	    NewPlayerState
-	 else
-	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-1]}
-	    IdNew=NewPlayerState.id
-	    Message=message(id:IdNew damage:1 lifeleft:NewPlayerState.life) %there is one damage
-	    NewPlayerState
-	 end
+	 DamageState={AdjoinList PlayerState [life#PlayerState.life-1]}
+	 Damage=1
       else
-	 if PlayerState.life=<2 then
-	    NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
-	    IdNew=NewPlayerState.id
-	    Message=message(id:IdNew damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
-	    NewPlayerState
-	 else
-	    NewPlayerState={AdjoinList PlayerState [life#PlayerState.life-2]}
-	    IdNew=NewPlayerState.id
-	    Message=message(id:IdNew damage:2 lifeleft:NewPlayerState.life) %there is no life anymore
-	    NewPlayerState
-	 end
+	 DamageState={AdjoinList PlayerState [life#PlayerState.life-2]}
+	 Damage=2
       end
+      if DamageState.life=<0 then
+	 NewPlayerState={AdjoinList PlayerState [life#0 alive#false]}
+	 Message=sayDeath(NewPlayerState.id) %there is no life anymore
+      else
+	 Message=sayDamageTaken(DamageState.id Damage NewPlayerState.life)  %there is one damage
+	 NewPlayerState=DamageState
+      end
+      NewPlayerState
    end
 
     %Checks the distance thanks to Manhattan distance
    %Binds <Message> ::=message(id:<id> damage:0|1|2 lifeleft:<life>)
    %Returns the new state of the player
    fun{SayMineExplode ID Position PlayerState Message}
-        {SayMissileExplode ID Position PlayerState ?Message}
+      NewPlayerState DamageState Manhattan Damage
+   in
+      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+      if Manhattan >= 2 then
+	 DamageState=PlayerState
+	 NewPlayerState=PlayerState
+	 Damage=0
+	 Message=null %there is no damage
+      elseif Manhattan==1 then
+	 DamageState={AdjoinList PlayerState [life#PlayerState.life-1]}
+	 Damage=1
+      else
+	 DamageState={AdjoinList PlayerState [life#PlayerState.life-2]}
+	 Damage=2
+      end
+      if DamageState.life=<0 then
+	 NewPlayerState={AdjoinList DamageState [life#0 alive#false]}
+	 Message=sayDeath(NewPlayerState.id) %there is no life anymore
+      else
+	 Message=sayDamageTaken(DamageState.id Damage NewPlayerState.life)  %there is one damage
+	 NewPlayerState=DamageState
+      end
+      NewPlayerState
    end
 
    fun{SayPassingDrone Drone ID Answer}
