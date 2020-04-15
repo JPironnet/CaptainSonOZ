@@ -43,7 +43,7 @@ in
    
    proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
-      [] initPosition(ID Position)|T then
+      [] initPosition(?ID ?Position)|T then
 	 NewPlayerState in
 	 NewPlayerState={InitPosition ID Position PlayerState}
 	 {TreatStream T NewPlayerState}
@@ -191,7 +191,7 @@ in
       Direction={Nth Poles Dir}
       if Dir==2 then
 	 {Print 'c nord'}
-	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==false then %if it's an island
+	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then %if it's an island
 	    {Move ID Position Direction PlayerState} 
 	 else 
 	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited} then {Move ID Position Direction PlayerState} 
@@ -204,7 +204,7 @@ in
 	 end
       elseif Dir==3 then
 	 {Print 'c sud'}
-	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==false then
+	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited} then
@@ -218,7 +218,7 @@ in
 	 end
       elseif Dir==1 then
 	 {Print 'Cest est'}
-	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==false then
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited} then
@@ -231,7 +231,7 @@ in
 	    end
 	 end
       elseif Dir==4 then
-	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==false then
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
 	    {Move ID Position Direction PlayerState} 
 	 else
 	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited} then
@@ -466,7 +466,7 @@ in
       Row Column Position in
       Row = {OS.rand} mod Input.nRow+1
       Column = {OS.rand} mod Input.nColumn+1
-      if {IsPositionOk Row Column} then
+      if {IsPositionOk Row Column}==1 then
 	 Position=pt(x:Row y:Column)
 	 Position
       else
@@ -489,22 +489,23 @@ in
    end
 
    fun{IsLimitOfMap Row Column}
-      if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then false
-      else true 
+      if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then 0
+      else 1
       end
    end
    
     %Check if the position is ok (if the position is not out of the map and if it is not an island) 
     %Returns true if it is water and in the map, false otherwise
    fun{IsPositionOk Row Column}
-      R C in
-      R={Nth Input.map Row}
-      C={Nth R Column}
-      if C==1 then false
-      else
-	 if {IsLimitOfMap Row Column} then false
-	 else true
-	 end
+      %R C in
+      %if C==1 then 0
+      %else
+         if {IsLimitOfMap Row Column}==1 then 0
+	      else 
+            1
+            %R={Nth Input.map Row} 
+            %C={Nth R Column}
+	   %   end
       end
    end 
 
@@ -513,12 +514,14 @@ in
    fun{IsVisited X Y List}
       case List of nil then false
       [] H|T then
-	 if H.x==X then
-	    if H.y==Y then true
-	    else false
-	    end
-	 else false
-	 end
+	      if H.x==X then
+	         if H.y==Y then true
+	         else false
+	         end
+	      else false
+	      end
+      else 
+         false 
       end
    end
 
