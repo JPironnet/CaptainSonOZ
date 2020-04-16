@@ -248,7 +248,7 @@ in
    proc {LaunchSimultaneous Players GameState GUI}
       proc {Turn Player}
          {Print 'dedans'}
-	      Answer ID Position Direction Item KindFire Mine %GS1 
+	      Answer ID Position Direction Item KindFire Mine GS2 %GS1 
          in 
 	      %if (GameState.firstRound==true) then
 	         {Send Player.port dive}
@@ -268,6 +268,7 @@ in
 		         {Send GUI surface(Player.id)}
 		         {Turn Player}
 	         else 
+               GS2={Move Player GameState GUI}
 		         {Send Player.port isDead(?Answer)}
 		         {Wait Answer}
 		         if (Answer == 0) then
@@ -293,7 +294,8 @@ in
 			                  %GS1={AdjoinList GameState [firstRound#false]}
 			               %end
 			               if(GameState.alive > 1) then %parametre que je pense interessant
-			                  {Turn Player}
+			                  {Delay 2000}
+                           {Turn Player}
 			               else
 			                  skip
 			               end
