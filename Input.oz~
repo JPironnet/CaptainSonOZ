@@ -51,19 +51,15 @@ in
 
 %%%% Description of the map %%%%
 
-   NRow = 10
-   NColumn = 10
+   NRow = 6
+   NColumn = 6
 
-   Map = [[0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 1 0 0 0 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 0 0 1 1 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]]
+   Map = [[0 1 0 0 0 0 ]
+	  [0 0 0 0 0 0 ]
+	  [0 0 0 1 0 0 ]
+	  [0 0 1 1 0 0 ]
+	  [0 0 0 0 0 0 ]
+	  [0 0 0 0 0 0 ]]
 
 %%%% Players description %%%%
 
@@ -78,11 +74,11 @@ in
 
 %%%% Surface time/turns %%%%
 
-   TurnSurface = 3
+   TurnSurface = 2
 
 %%%% Life %%%%
 
-   MaxDamage = 10
+   MaxDamage = 3
 
 %%%% Number of load for each item %%%%
 

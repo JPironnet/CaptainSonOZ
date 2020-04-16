@@ -93,7 +93,7 @@ in
 	 NewPlayerState in
 	 NewPlayerState={SayMissileExplode ID Position PlayerState Message} 
 	 {TreatStream T NewPlayerState}
-      [] sayMineExplode(ID Position ?Message)|T then
+      [] sayMineExplode(ID Position Message)|T then
 	 NewPlayerState in
 	 NewPlayerState={SayMineExplode ID Position PlayerState Message} 
 	 {TreatStream T NewPlayerState}
@@ -248,7 +248,7 @@ in
 	      Direction={Nth Poles Dir}
          {Print Direction}
 	      Position=PlayerState.position
-	      NewPlayerState={AdjoinList PlayerState [visited#Position surface#true]}
+	      NewPlayerState={AdjoinList PlayerState [visited#[Position] surface#true]}
 	      NewPlayerState
       end
    end
@@ -272,8 +272,6 @@ in
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
 	    KindItem ='mine'
-	    {Print 'Le joueur a charge un item, cet item est : '}
-	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
 	    NewPlayerState
 	 else 
@@ -285,8 +283,6 @@ in
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
 	    KindItem = 'missile'
-	    {Print 'Le joueur a charge un item, cet item est : '}
-	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
 	    NewPlayerState
 	 else 
@@ -298,8 +294,6 @@ in
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
 	    KindItem = 'sonar'
-	    {Print 'Le joueur a charge un item, cet item est : '}
-	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
 	    NewPlayerState
 	 else
@@ -311,8 +305,6 @@ in
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
 	    KindItem = 'drone'
-	    {Print 'Le joueur a charge un item, cet item est : '}
-	    {Print KindItem}
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
 	    NewPlayerState
 	 else
@@ -346,6 +338,7 @@ in
 	 NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.sonarAmmo > 0) then
+	 KindFire=sonar
 	 NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
 	 NewPlayerState
       else 
@@ -380,9 +373,9 @@ in
    fun{IsDead Answer PlayerState}
       NewPlayerState in
       if PlayerState.life==0 then
-	 Answer=1
+	 Answer=true
       else
-	 Answer=0
+	 Answer=false
       end
       NewPlayerState=PlayerState
       NewPlayerState
@@ -411,6 +404,8 @@ in
       NewPlayerState Manhattan Damage
    in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+      {Print 'La distance Manhattan de Player2 est de :'}
+      {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
 	 Damage=0
@@ -442,8 +437,10 @@ in
    %Returns the new state of the player
   fun{SayMineExplode ID Position PlayerState Message}
       NewPlayerState Manhattan Damage
-   in
-      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+  in
+     Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+      {Print 'La distance Manhattan de Player2 est de :'}
+      {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
 	 Damage=0
