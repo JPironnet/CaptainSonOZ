@@ -338,7 +338,7 @@ in
 	 NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.sonarAmmo > 0) then
-	 KindFire=sonar
+	  KindFire=sonar
 	 NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
 	 NewPlayerState
       else 
@@ -403,7 +403,6 @@ in
    fun{SayMissileExplode ID Position PlayerState Message}
       NewPlayerState Manhattan Damage
    in
-      {Delay 1000}
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
       {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
@@ -440,7 +439,7 @@ in
       NewPlayerState Manhattan Damage
   in
      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan de Player2 est de :'}
+      {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState

@@ -1,4 +1,5 @@
 %Player2.Oz
+%Player.Oz
 functor
 import
    Input
@@ -41,7 +42,7 @@ define
 
 in
    
-   proc{TreatStream Stream PlayerState} 
+    proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
       [] initPosition(ID Position)|T then
 	 NewPlayerState in
@@ -79,7 +80,9 @@ in
 	 {TreatStream T NewPlayerState}
 	 
       [] sayMove(ID Direction)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayMove ID Direction PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] saySurface(ID)|T then
 	 {TreatStream T PlayerState}
@@ -88,33 +91,48 @@ in
 	 {TreatStream T PlayerState}
 	 
       [] sayMinePlaced(ID)|T then
-        {TreatStream T PlayerState}
+	 {TreatStream T PlayerState}
+	 
       [] sayMissileExplode(ID Position Message)|T then
 	 NewPlayerState in
 	 NewPlayerState={SayMissileExplode ID Position PlayerState Message} 
 	 {TreatStream T NewPlayerState}
+	 
       [] sayMineExplode(ID Position Message)|T then
 	 NewPlayerState in
 	 NewPlayerState={SayMineExplode ID Position PlayerState Message} 
 	 {TreatStream T NewPlayerState}
 	 
       [] sayPassingDrone(Drone ID Answer)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayPassingDrone Drone ID Answer PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] sayAnswerDrone(Drone ID Answer)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayAnswerDrone Drone ID Answer PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] sayPassingSonar(ID Answer)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayPassingSonar ID Answer PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] sayAnswerSonar(ID Answer)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayAnswerSonar ID Answer PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] sayDeath(ID)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayDeath ID PlayerState}
+	 {TreatStream T NewPlayerState}
 	 
       [] sayDamageTaken(ID Damage LifeLeft)|T then
-	 {TreatStream T PlayerState}
+	 NewPlayerState in
+	 NewPlayerState={SayDamageTaken ID Damage LifeLeft PlayerState}
+	 {TreatStream T NewPlayerState}
+	 
       [] _|T then {TreatStream T PlayerState}
       end
    end
@@ -334,11 +352,11 @@ in
 	 NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.droneAmmo > 0) then
-	 KindFire = drone({RandomRowOrColumn})
+	 KindFire = {RandomRowOrColumn}
 	 NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.sonarAmmo > 0) then
-	 KindFire=sonar
+	  KindFire=sonar
 	 NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
 	 NewPlayerState
       else 
@@ -381,20 +399,20 @@ in
       NewPlayerState
    end
 
-   fun{SayMove ID Direction}
-      nil
+   fun{SayMove ID Direction PlayerState}
+      PlayerState
    end
 
-   fun{SaySurface ID}
-      nil
+   fun{SaySurface ID PlayerState}
+      PlayerState
    end
 
-   fun{SayCharge ID KindItem}
-      nil
+   fun{SayCharge ID KindItem PlayerState}
+      PlayerState
    end
 
-   fun{SayMinePlaced ID}
-      nil
+   fun{SayMinePlaced ID PlayerState}
+      PlayerState
    end
 
    %Checks the distance thanks to Manhattan distance
@@ -404,7 +422,7 @@ in
       NewPlayerState Manhattan Damage
    in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan de Player2 est de :'}
+      {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
@@ -439,7 +457,7 @@ in
       NewPlayerState Manhattan Damage
   in
      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan de Player2 est de :'}
+      {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
@@ -467,28 +485,60 @@ in
       NewPlayerState
    end
 
-   fun{SayPassingDrone Drone ID Answer}
-      nil
+   fun{SayPassingDrone Drone ID Answer PlayerState}
+      ID=PlayerState.id
+      if {Label Drone.1}==row then
+	 if PlayerState.position.x==Drone.1.x then
+	    Answer=true
+	 else
+	    Answer=false
+	 end
+      else
+	 if PlayerState.position.y==Drone.1.y then
+	    Answer=true
+	 else
+	    Answer=false
+	 end
+      end
+      PlayerState
    end
 
-   fun{SayAnswerDrone Drone ID Answer}
-      nil
+   fun{SayAnswerDrone Drone ID Answer PlayerState}
+      PlayerState
    end
 
-   fun{SayPassingSonar ID Answer}
-      nil
+   fun{SayPassingSonar ID Answer PlayerState}
+      Choice Random in
+      ID=PlayerState.id
+      Choice={OS.rand} mod 2
+      if Choice==0 then
+	 Random={OS.rand} mod 1+Input.nColumn
+	 if {IsPositionOk PlayerState.position.x Random} then %if the position is possible
+	    Answer=pt(x:PlayerState.position.x y:Random)
+	 else
+	    {SayPassingSonar ID Answer PlayerState}
+	 end
+      else
+	 Random={OS.rand} mod 1+Input.nRow
+	 if {IsPositionOk Random PlayerState.position.y} then
+	    Answer=pt(x:Random y:PlayerState.position.y)
+	 else
+	    {SayPassingSonar ID Answer PlayerState}
+	 end
+      end
+      PlayerState
    end
 
-   fun{SayAnswerSonar ID Answer}
-      nil
+   fun{SayAnswerSonar ID Answer PlayerState}
+      PlayerState
    end
 
-   fun{SayDeath ID}
-      nil
+   fun{SayDeath ID PlayerState}
+      PlayerState
    end
 
-   fun{SayDamageTaken ID Damage LifeLeft}
-      nil
+   fun{SayDamageTaken ID Damage LifeLeft PlayerState}
+      PlayerState
    end
 
 %%%%%%%%%%% Useful functions %%%%%%%%%%%%%%%%%%%
@@ -513,11 +563,11 @@ in
       Choice = {OS.rand} mod 2
       if (Choice==0) then
 	 Result = {OS.rand} mod Input.nRow
-	 Drone = drone(row:Result)
+	 Drone = drone(row(x:Result))
 	 Drone 
       else 
 	 Result = {OS.rand} mod Input.nColumn
-	 Drone = drone(column:Result)
+	 Drone = drone(column(y:Result))
 	 Drone 
       end
    end
