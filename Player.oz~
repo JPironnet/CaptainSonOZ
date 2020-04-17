@@ -268,8 +268,7 @@ in
    fun{ChargeItem ID KindItem PlayerState}
       NewPlayerState Choice in
       ID = PlayerState.id
-      %Choice = {OS.rand} mod 4+1
-      Choice=1
+      Choice = {OS.rand} mod 4+1
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
 	    KindItem ='mine'
@@ -373,7 +372,6 @@ in
    %Returns the state of the player
    fun{IsDead Answer PlayerState}
       NewPlayerState in
-      {Print 'Je suis dans isdead'}
       if PlayerState.life==0 then
 	 Answer=true
       else
@@ -405,7 +403,6 @@ in
    fun{SayMissileExplode ID Position PlayerState Message}
       NewPlayerState Manhattan Damage
    in
-      {Delay 1000}
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
       {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
@@ -441,7 +438,6 @@ in
   fun{SayMineExplode ID Position PlayerState Message}
       NewPlayerState Manhattan Damage
   in
-     {Delay 1000}
      Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
       {Print 'La distance Manhattan est de :'}
       {Print Manhattan}
