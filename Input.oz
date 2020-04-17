@@ -47,17 +47,23 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
-   NRow = 4
-   NColumn = 4
+   NRow = 10
+   NColumn = 10
 
-   Map = [[0 0 0 0 ]
-	  [0 1 0 0 ]
-	  [0 0 0 1 ]
-	  [0 0 0 1 ]]
+   Map = [[0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 1 1 0 0 0 0 0]
+	  [0 0 1 1 0 0 1 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 1 0 0 1 1 0 0]
+	  [0 0 1 1 0 0 1 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]]
 
 %%%% Players description %%%%
 

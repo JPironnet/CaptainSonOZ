@@ -37,10 +37,7 @@ in
 	 if Number > Input.nbPlayer then nil %There is no more player in Players
 	 else 
 	    case Players#Colors of (H|T)#(X|Xr) then 
-         if (Input.isTurnByTurn) then player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
-         else 
-            player(port:{PlayerManager.playerGenerator H X Number})|{GP T Xr Number+1}
-         end
+         player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
 	    end
 	 end
       end
@@ -247,117 +244,69 @@ in
     end
     
 
-<<<<<<< HEAD
    proc {LaunchSimultaneous Players GameState GUI}
       proc {Turn Player}
          {Print 'dedans'}
 	      Answer ID Position Direction Item KindFire Mine GS2 %GS1 
          in 
-=======
-    proc {LaunchSimultaneous Players GameState GUI}
-       proc {Turn Player}
-	  {Print 'dedans'}
-	  Answer ID Position Direction Item KindFire Mine %GS1 
-       in 
->>>>>>> master
 	      %if (GameState.firstRound==true) then
-	  {Send Player.port dive}
-	  {Print 'C est dive'}
+	      {Send Player.port dive}
+	      {Print 'C est dive'}
 	      %end
-<<<<<<< HEAD
 	      {Send Player.port isDead(?Answer)}
 	      {Wait Answer}
-         {Print Answer}
-	      if (Answer == 0) then
+	      if (Answer == false) then
             {Print 'En vie et pret a move'}
 	         {SimulateThinking}
 	         {Send Player.port move(?ID ?Position ?Direction)}
             {Print 'j ai move'}
 	         {Wait ID} {Wait Position} {Wait Direction} 
 	         if (Direction=='Surface' ) then
-		         {Delay Input.turnSurface}
-		         {Send GUI surface(Player.id)}
+               {Send GUI surface(Player.id)}
+		         {Delay Input.turnSurface} 
 		         {Turn Player}
 	         else 
                GS2={Move Player GameState GUI}
 		         {Send Player.port isDead(?Answer)}
 		         {Wait Answer}
-		         if (Answer == 0) then
-		            {SimulateThinking}
-		            {Send Player.port chargeItem(?ID ?Item)}
-		            {Wait ID} {Wait Item}
-=======
-	  {Send Player.port isDead(?Answer)}
-	  {Wait Answer}
-	  {Print Answer}
-	  if (Answer == 0) then
-	     {Print 'En vie et pret a move'}
-	     {SimulateThinking}
-	     {Send Player.port move(?ID ?Position ?Direction)}
-	     {Print 'j ai move'}
-	     {Wait ID} {Wait Position} {Wait Direction} 
-	     if (Direction=='Surface' ) then
-		{Delay Input.turnSurface}
-		{Send GUI surface(Player.id)}
-		{Turn Player}
-	     else 
-		{Send Player.port isDead(?Answer)}
-		{Wait Answer}
-		if (Answer == 0) then
-		   {SimulateThinking}
-		   {Send Player.port chargeItem(?ID ?Item)}
-		   {Wait ID} {Wait Item}
->>>>>>> master
+		         %if (Answer == false) then
+		            %{SimulateThinking}
+		            %{Send Player.port chargeItem(?ID ?Item)}
+		            %{Wait ID} {Wait Item}
 		            %{Broadcast}
-		   {Send Player.port isDead(?Answer)}
-		   {Wait Answer}
-		   if (Answer == 0) then
-		      {SimulateThinking}
-		      {Send Player.port fireItem(?ID ?KindFire)}
-		      {Wait ID} {Wait KindFire}
+		            %{Send Player.port isDead(?Answer)}
+		            %{Wait Answer}
+		            %if (Answer == false) then
+		               %{SimulateThinking}
+		               %{Send Player.port fireItem(?ID ?KindFire)}
+		               %{Wait ID} {Wait KindFire}
                      %{Broadcast}
-		      {Send Player.port isDead(?Answer)}
-		      {Wait Answer}
-		      if (Answer == 0) then
-			 {SimulateThinking}
-			 {Send Player.port fireMine(?ID ?Mine)}
-			 {Wait ID} {Wait Mine}
+		               %{Send Player.port isDead(?Answer)}
+		               %{Wait Answer}
+		               %if (Answer == 0) then
+			               %{SimulateThinking}
+			               %{Send Player.port fireMine(?ID ?Mine)}
+			               %{Wait ID} {Wait Mine}
                         %{Broadcast}
 			               %if(GameState.firstRound==true) then
 			                  %GS1={AdjoinList GameState [firstRound#false]}
 			               %end
-<<<<<<< HEAD
 			               if(GameState.alive > 1) then %parametre que je pense interessant
 			                  {Delay 2000}
                            {Turn Player}
 			               else
+                           {Print 'fin de game'}
 			                  skip
 			               end
-		               end
-		            end
-		         end    
+		               %end
+		            %end
+		         %end    
 	         end
 	      end
       end
    in
       {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
    end
-=======
-			 if(GameState.alive > 1) then %parametre que je pense interessant
-			    {Turn Player}
-			 else
-			    skip
-			 end
-		      end
-		   end
-		end    
-	     end
-	  end
-       end
-    in
-       {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
-    end
->>>>>>> master
 
     %Send Say to all players
     %Return the state of the game
