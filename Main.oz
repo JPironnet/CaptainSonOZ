@@ -234,12 +234,8 @@ in
        end
     end
     
-<<<<<<< HEAD
-   proc {LaunchSimultaneous Players GameState GUI}
-=======
 
   proc {LaunchSimultaneous Players GameState GUI}
->>>>>>> master
       proc {Turn Player}
          Answer GS1 GS2 GS3 GS4 in 
          {Send Player.port dive}
@@ -280,11 +276,7 @@ in
                                  {SimulateThinking}
                                  GS4={MineExplode Player GS3 GUI}
                                  {Turn Player}
-<<<<<<< HEAD
-                              end
-=======
                               end 
->>>>>>> master
                            end
                         end
                      end
@@ -296,73 +288,6 @@ in
    in
       {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
    end
-<<<<<<< HEAD
-
-   %proc {LaunchSimultaneous Players GameState GUI}
-    %  proc {Turn Player}
-     %    {Print 'dedans'}
-	   %   Answer ID Position Direction Item KindFire Mine GS2 %GS1 
-       %  in 
-	      %if (GameState.firstRound==true) then
-	     % {Send Player.port dive}
-	      %{Print 'C est dive'}
-	      %end
-	   %  {Send Player.port isDead(?Answer)}
-	    %  {Wait Answer}
-	     % if (Answer == false) then
-         %   {Print 'En vie et pret a move'}
-	       %  {SimulateThinking}
-	%        % {Send Player.port move(?ID ?Position ?Direction)}
-            %{Print 'j ai move'}
-	        % {Wait ID} {Wait Position} {Wait Direction} 
-	        % if (Direction=='Surface' ) then
-            %   {Send GUI surface(Player.id)}
-		       %  {Delay Input.turnSurface} 
-		        % {Turn Player}
-	 %        else 
-     %          GS2={Move Player GameState GUI}
-		%         {Send Player.port isDead(?Answer)}
-		 %        {Wait Answer}
-		         %if (Answer == false) then
-		            %{SimulateThinking}
-		            %{Send Player.port chargeItem(?ID ?Item)}
-		            %{Wait ID} {Wait Item}
-		            %{Broadcast}
-		            %{Send Player.port isDead(?Answer)}
-		            %{Wait Answer}
-		            %if (Answer == false) then
-		               %{SimulateThinking}
-		               %{Send Player.port fireItem(?ID ?KindFire)}
-		               %{Wait ID} {Wait KindFire}
-                     %{Broadcast}
-		               %{Send Player.port isDead(?Answer)}
-		               %{Wait Answer}
-		               %if (Answer == 0) then
-			               %{SimulateThinking}
-			               %{Send Player.port fireMine(?ID ?Mine)}
-			               %{Wait ID} {Wait Mine}
-                        %{Broadcast}
-			               %if(GameState.firstRound==true) then
-			                  %GS1={AdjoinList GameState [firstRound#false]}
-			               %end
-			%               if(GameState.alive > 1) then %parametre que je pense interessant
-			 %                 {Delay 2000}
-           %                {Turn Player}
-			   %            else
-             %              {Print 'fin de game'}
-			     %             skip
-			      %         end
-		               %end
-		            %end
-		         %end    
-	        % end
-	      %end
-      %end
-   %in
-    %  {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
-  % end
-=======
->>>>>>> master
 
     %Send Say to all players
     %Return the state of the game
