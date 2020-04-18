@@ -130,7 +130,7 @@ in
        {Send Player.port chargeItem(?ID ?KindItem)}
        {Wait ID}
        {Wait KindItem}
-        %{BroadCastMessage GameState.playerslist sayCharge(ID Item)}
+       %{BroadCastMessage GUI GameState GameState.playerslist Player sayCharge(ID KindItem)}
        GameState
     end
     
@@ -148,7 +148,7 @@ in
        if {Label KindFire}==missile then
 	  {Print 'Il va essayer de fire un item qui est :'}
 	  {Print {Label KindFire}}
-	  {BroadCastMessage GUI GameState GameState.playerslist sayMissileExplode(ID KindFire.1)}
+	  {BroadCastMessage GUI GameState GameState.playerslist Player sayMissileExplode(ID KindFire.1)}
        elseif {Label KindFire}==mine then
 	  {Print 'Il va essayer de fire un item qui est :'}
 	  {Print {Label KindFire}}
@@ -157,9 +157,11 @@ in
        elseif {Label KindFire}==sonar then
 	  {Print 'Il va essayer de fire un item qui est :'}
 	  {Print 'Sonar'}
-       else
+	  {BroadCastMessage GUI GameState GameState.playerslist Player sayPassingSonar()}
+       elseif {Label KindFire}==drone then
 	  {Print 'Il va essayer de fire un item qui est :'}
-          {Print {Label KindFire}}
+	  {Print {Label KindFire}}
+	  {BroadCastMessage GUI GameState GameState.playerslist Player sayPassingDrone(KindFire)}
        end
        GameState
     end
@@ -180,7 +182,7 @@ in
 	  GameState
        else
 	  {Print 'Le joueur a une mine et la fait exploser'}
-	  {BroadCastMessage GUI GameState GameState.playerslist sayMineExplode(ID Mine)}
+	  {BroadCastMessage GUI GameState GameState.playerslist Player sayMineExplode(ID Mine)}
 	  {Send GUI removeMine(ID Mine)} %GUI removes the mine at the position Mine.1
 	  GameState
        end
@@ -310,8 +312,8 @@ in
 
     %Send Say to all players
     %Return the state of the game
-    proc{BroadCastMessage GUI_port GameState PlayersList Say}
-       Message in
+    proc{BroadCastMessage GUI_port GameState PlayersList Player Say}
+       Message ID Answer in
        case Say
        of sayMineExplode(ID Position) then
 	  case PlayersList of nil then skip
@@ -326,12 +328,12 @@ in
 		   {Print Life}
 		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
-		   {BroadCastMessage GUI_port GameState T Say}
+		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dune mine'}
 		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
-		    {BroadCastMessage GUI_port GameState T Say}
+		    {BroadCastMessage GUI_port GameState T Player Say}
 		end
 	     end
 	  end
@@ -347,17 +349,35 @@ in
 		   {Print 'Le joueur a eu x damage et lui reste y life :'}
 		   {Print Damage}
 		   {Print Life}
-		    %{BroadCastMessage GUI_port PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
+		   {BroadCastMessage GUI_port PlayersList GameState Player sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
-		   {BroadCastMessage GUI_port GameState T Say}
+		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dun missile'}
-		    %{BroadCastMessage GUI_port PlayersList sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port PlayersList GameState Player sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
-		   {BroadCastMessage GUI_port GameState T Say}
+		   {BroadCastMessage GUI_port GameState T Player Say}
 		end
 	     end
 	  end
+       [] sayPassingSonar() then
+	  case PlayersList of nil then skip
+	  [] H|T then
+	     {Send H.port sayPassingSonar(?ID ?Answer)}
+	     {Wait ID}
+	     {Wait Answer}
+	     {Send Player.port sayAnswerSonar(ID Answer)}
+	     {BroadCastMessage GUI_port GameState T Player Say}
+	  end
+       [] sayPassingDrone(Drone) then
+	   case PlayersList of nil then skip
+	  [] H|T then
+	     {Send H.port sayPassingDrone(Drone ?ID ?Answer)}
+	     {Wait ID}
+	     {Wait Answer}
+	     {Send Player.port sayAnswerDrone(Drone ID Answer)}
+	      {BroadCastMessage GUI_port GameState T Player Say}
+	   end
        else
 	  {List.forAll PlayersList (proc {$ Player} {Send Player.port Message} end)}
        end							

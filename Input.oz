@@ -47,23 +47,18 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = false
+   IsTurnByTurn = true
 
 %%%% Description of the map %%%%
 
-   NRow = 10
-   NColumn = 10
+   NRow = 5
+   NColumn = 6
 
-   Map = [[0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 1 0 0 0 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 0 0 1 1 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]]
+   Map = [[0 0 0 0 0 0]
+	  [0 0 0 0 0 0]
+	  [0 0 0 1 1 0]
+	  [0 0 1 1 0 0]
+	  [0 0 0 0 0 0]]
 
 %%%% Players description %%%%
 
@@ -82,14 +77,14 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 3
+   MaxDamage = 4
 
 %%%% Number of load for each item %%%%
 
    Missile = 2
    Mine = 1
    Sonar = 3
-   Drone = 3
+   Drone = 2
 
 %%%% Distances of placement %%%%
 
