@@ -149,7 +149,6 @@ in
 	  {BroadCastMessage GUI GameState GameState.playerslist Player sayMissileExplode(ID KindFire.1)}
        elseif {Label KindFire}==mine then
 	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
-	  {Print 'Il a pose une mine'}
        elseif {Label KindFire}==sonar then
 	  {BroadCastMessage GUI GameState GameState.playerslist Player sayPassingSonar()}
        elseif {Label KindFire}==drone then
@@ -305,12 +304,12 @@ in
 		   {Print 'Le joueur a eu x damage et lui reste y life :'}
 		   {Print Damage}
 		   {Print Life}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
+		    {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dune mine'}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDeath(ID)} % Broadcast
+		    {BroadCastMessage GUI_port GameState GameState.playersList Player sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
 		    {BroadCastMessage GUI_port GameState T Player Say}
 		end
@@ -333,7 +332,7 @@ in
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dun missile'}
-		   %{BroadCastMessage GUI_port PlayersList GameState Player sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		end

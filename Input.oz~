@@ -47,7 +47,7 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
@@ -64,7 +64,7 @@ in
 
    NbPlayer = 2
    Players = [player1 player2]
-   Colors = [yellow green]
+   Colors = [red green]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -77,7 +77,7 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 4
+   MaxDamage = 3
 
 %%%% Number of load for each item %%%%
 

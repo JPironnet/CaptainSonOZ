@@ -208,10 +208,8 @@ in
    fun{Move ID Position Direction PlayerState}
       NewPlayerState in
       if PlayerState.target.id==0 then
-	 {Print 'Le joueur smart n a pas de cible, il bouge aleatoirement : '}
 	 NewPlayerState={MoveRandomly ID Position Direction PlayerState} %if the player does not have a target, he moves randomly
       else
-	 {Print 'Le joueur smart a une cible et bouge en fonction'}
 	 NewPlayerState={MoveIfTarget ID Position Direction PlayerState 1}
       end
       NewPlayerState
