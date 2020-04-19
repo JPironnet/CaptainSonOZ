@@ -205,70 +205,74 @@ in
       Poles Dir NewPlayerState in
       Poles= ['East' 'North' 'South' 'West' 'Surface']
       Dir={OS.rand} mod 5+1
-      {Print 'Le joueur a choisi la direction : '} 
       ID=PlayerState.id
       if Dir==2 then
-	      if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
-	         {Move ID Position Direction PlayerState} 
-	      else
-	         if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
-	            {Move ID Position Direction PlayerState} 
-	         else
-	            Direction={Nth Poles Dir}
-	            {Print Direction}
-	            Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
-	            NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-	            NewPlayerState
-	         end
-	      end
+	 if {IsPositionOk PlayerState.position.x-1 PlayerState.position.y}==0 then
+	    {Move ID Position Direction PlayerState} 
+	 else
+	    if {IsVisited PlayerState.position.x-1 PlayerState.position.y PlayerState.visited}==1 then
+	       {Move ID Position Direction PlayerState} 
+	    else
+	       Direction={Nth Poles Dir}
+	       {Print 'Le joueur a choisi la direction : '} 
+	       {Print Direction}
+	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
+	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+	       NewPlayerState
+	    end
+	 end
       elseif Dir==3 then
-	      if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
-            {Move ID Position Direction PlayerState} 
-	      else
-	         if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited}==1 then
-	            {Move ID Position Direction PlayerState} 
-            else
-               Direction={Nth Poles Dir}
-               {Print Direction}
-               Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
-               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-               NewPlayerState
-            end
-	      end
+	 if {IsPositionOk PlayerState.position.x+1 PlayerState.position.y}==0 then
+	    {Move ID Position Direction PlayerState} 
+	 else
+	    if {IsVisited PlayerState.position.x+1 PlayerState.position.y PlayerState.visited}==1 then
+	       {Move ID Position Direction PlayerState} 
+	    else
+	       Direction={Nth Poles Dir}
+	       {Print 'Le joueur a choisi la direction : '} 
+	       {Print Direction}
+	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
+	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+	       NewPlayerState
+	    end
+	 end
       elseif Dir==1 then
-	      if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
-	         {Move ID Position Direction PlayerState} 
-	      else
-	         if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited}==1 then
-               {Move ID Position Direction PlayerState} 
-            else
-               Direction={Nth Poles Dir}
-               {Print Direction}
-               Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
-               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-               NewPlayerState
-            end
-         end
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y+1}==0 then
+	    {Move ID Position Direction PlayerState} 
+	 else
+	    if {IsVisited PlayerState.position.x PlayerState.position.y+1 PlayerState.visited}==1 then
+	       {Move ID Position Direction PlayerState} 
+	    else
+	       Direction={Nth Poles Dir}
+	        {Print 'Le joueur a choisi la direction : '} 
+	       {Print Direction}
+	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
+	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+	       NewPlayerState
+	    end
+	 end
       elseif Dir==4 then
-	      if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
-            {Move ID Position Direction PlayerState} 
-         else
-            if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited}==1 then
-               {Move ID Position Direction PlayerState} 
-            else
-               Direction={Nth Poles Dir}
-               {Print Direction}
-               Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
-               NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
-               NewPlayerState
-            end
-         end
+	 if {IsPositionOk PlayerState.position.x PlayerState.position.y-1}==0 then
+	    {Move ID Position Direction PlayerState} 
+	 else
+	    if {IsVisited PlayerState.position.x PlayerState.position.y-1 PlayerState.visited}==1 then
+	       {Move ID Position Direction PlayerState} 
+	    else
+	       Direction={Nth Poles Dir}
+	        {Print 'Le joueur a choisi la direction : '} 
+	       {Print Direction}
+	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
+	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
+	       NewPlayerState
+	    end
+	 end
       else
-	      Direction={Nth Poles Dir}
-         {Print Direction}
-	      Position=PlayerState.position
-	      NewPlayerState={AdjoinList PlayerState [visited#[Position] surface#true]}
-	      NewPlayerState
+	 Direction={Nth Poles Dir}
+	  {Print 'Le joueur a choisi la direction : '} 
+	 {Print Direction}
+	 Position=PlayerState.position
+	 NewPlayerState={AdjoinList PlayerState [visited#[Position] surface#true]}
+	 NewPlayerState
       end
    end
 
@@ -429,7 +433,7 @@ in
       NewPlayerState Manhattan Damage
    in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan est de :'}
+      {Print 'La distance Manhattan du joueur est de :'}
       {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState

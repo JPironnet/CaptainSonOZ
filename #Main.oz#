@@ -89,24 +89,24 @@ in
     %ID Position and Direction are binds
     %Check if Direction is Surface or not and sends to GUI some informations
     %Return the new state of the game
-   fun{Move Player GameState GUI}
-      ID Position Direction NewGameState in
-      {Send Player.port move(?ID ?Position ?Direction)}
-      {Wait ID} {Wait Position} {Wait Direction}
-      {BroadCastMessage GUI  GameState GameState.playerslist Player sayMove(ID Direction)}
-      if Direction=='Surface' then
-	      NewPlayer NewList in
-	      {Send GUI surface(ID)} %the submarine has made surface
-	      NewPlayer={AdjoinList Player [turnToWait#Input.turnSurface]}
-	      NewList={CreateNewList NewPlayer GameState.playerslist}
-	      NewGameState={AdjoinList GameState [playerslist#NewList]}
-	      NewGameState
-      else
-	      {Send GUI movePlayer(ID Position)} %the submarine moves
-	      NewGameState=GameState
-	      NewGameState
-      end
-   end
+    fun{Move Player GameState GUI}
+       ID Position Direction NewGameState in
+       {Send Player.port move(?ID ?Position ?Direction)}
+       {Wait ID} {Wait Position} {Wait Direction}
+       {BroadCastMessage GUI  GameState GameState.playerslist Player sayMove(ID Direction)}
+       if Direction=='Surface' then
+	  NewPlayer NewList in
+	  {Send GUI surface(ID)} %the submarine has made surface
+	  NewPlayer={AdjoinList Player [turnToWait#Input.turnSurface]}
+	  NewList={CreateNewList NewPlayer GameState.playerslist}
+	  NewGameState={AdjoinList GameState [playerslist#NewList]}
+	  NewGameState
+       else
+	  {Send GUI movePlayer(ID Position)} %the submarine moves
+	  NewGameState=GameState
+	  NewGameState
+       end
+    end
 
 %Create a new list to update GameState.playerslist
 %Returns the updated list
@@ -305,12 +305,12 @@ in
 		   {Print 'Le joueur a eu x damage et lui reste y life :'}
 		   {Print Damage}
 		   {Print Life}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
+		    {BroadCastMessage GUI_port GameState GameState.playerslist sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dune mine'}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDeath(ID)} % Broadcast
+		    {BroadCastMessage GUI_port GameState GameState.playersList Player sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
 		    {BroadCastMessage GUI_port GameState T Player Say}
 		end
@@ -328,12 +328,12 @@ in
 		   {Print 'Le joueur a eu x damage et lui reste y life :'}
 		   {Print Damage}
 		   {Print Life}
-		   %{BroadCastMessage GUI_port PlayersList GameState Player sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dun missile'}
-		   %{BroadCastMessage GUI_port PlayersList GameState Player sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port GameState Gamestate.playerslist Player sayDeath(ID)} % Broadcast
 		   {Send GUI_port removePlayer(ID)}
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		end
