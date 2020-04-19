@@ -51,20 +51,19 @@ in
 
 %%%% Description of the map %%%%
 
-   NRow = 5
-   NColumn = 6
+   NRow = 4
+   NColumn = 4
 
-   Map = [[0 0 0 0 0 0]
-	  [0 0 0 0 0 0]
-	  [0 0 0 1 1 0]
-	  [0 0 1 1 0 0]
-	  [0 0 0 0 0 0]]
+   Map = [[0 0 0 0 ]
+	  [0 0 0 0 ]
+	  [0 0 0 1 ]
+	  [0 0 1 1 ]]
 
 %%%% Players description %%%%
 
-   NbPlayer = 2
-   Players = [player1 player2]
-   Colors = [red green]
+   NbPlayer = 3
+   Players = [player1 player2 player3]
+   Colors = [yellow green blue]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -81,9 +80,9 @@ in
 
 %%%% Number of load for each item %%%%
 
-   Missile = 2
+   Missile = 1
    Mine = 1
-   Sonar = 3
+   Sonar = 2
    Drone = 2
 
 %%%% Distances of placement %%%%

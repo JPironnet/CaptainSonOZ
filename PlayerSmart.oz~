@@ -587,10 +587,14 @@ in
    fun{SayAnswerSonar ID Answer PlayerState}
       NewPlayerState NewTarget in
       if PlayerState.target.id==0 then
-	 NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
-	 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	 {Print 'Le joueur smart a une cible'}
-	 NewPlayerState
+	 if ID==PlayerState.id.id then
+	    PlayerState
+	 else
+	    NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
+	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	    {Print 'Le joueur smart a une cible'}
+	    NewPlayerState
+	 end
       else
 	 PlayerState
       end

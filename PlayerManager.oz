@@ -2,7 +2,8 @@
 %Adding players to the list
 functor
 import
-	Player
+   Player
+   Player2
 	PlayerSmart
 export
 	playerGenerator:PlayerGenerator
@@ -13,6 +14,7 @@ in
 		case Kind
 		of player2 then {PlayerSmart.portPlayer Color ID}
 		[] player1 then {Player.portPlayer Color ID}
+		[] player3 then {Player2.portPlayer Color ID}
 		end
 	end
 end

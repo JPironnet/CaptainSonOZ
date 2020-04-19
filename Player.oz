@@ -214,7 +214,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	       {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -229,7 +228,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	       {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -244,7 +242,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	        {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -259,7 +256,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	        {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -268,7 +264,6 @@ in
 	 end
       else
 	 Direction={Nth Poles Dir}
-	  {Print 'Le joueur a choisi la direction : '} 
 	 {Print Direction}
 	 Position=PlayerState.position
 	 NewPlayerState={AdjoinList PlayerState [visited#[Position] surface#true]}
@@ -372,7 +367,6 @@ in
 	 NewPlayerState
       else 
 	 KindFire = nil
-	 {Print 'Le joueur n a rien lance'}
 	 NewPlayerState=PlayerState
 	 NewPlayerState
       end
@@ -494,9 +488,11 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
+       {Print 'je suis la joueur1'}
       if Choice==0 then
 	 Random={OS.rand} mod 1+Input.nColumn
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	    {Print 'je suis la joueur1 aa'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
@@ -505,8 +501,9 @@ in
       else
 	 Random={OS.rand} mod 1+Input.nRow
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
+	     {Print 'je suis la joueur1 bb'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
-	     PlayerState
+	    PlayerState
 	 else
 	    {SayPassingSonar ID Answer PlayerState}
 	 end

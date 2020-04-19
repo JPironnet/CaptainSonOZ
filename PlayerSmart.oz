@@ -563,9 +563,11 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
+      {Print 'je suis la smart'}
       if Choice==0 then
 	 Random={OS.rand} mod 1+Input.nColumn
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	    {Print 'je suis la aa smart'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
@@ -574,6 +576,7 @@ in
       else
 	 Random={OS.rand} mod 1+Input.nRow
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
+	     {Print 'je suis la bb smart'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
 	    PlayerState
 	 else
@@ -587,10 +590,14 @@ in
    fun{SayAnswerSonar ID Answer PlayerState}
       NewPlayerState NewTarget in
       if PlayerState.target.id==0 then
-	 NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
-	 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	 {Print 'Le joueur smart a une cible'}
-	 NewPlayerState
+	 if ID==PlayerState.id.id then
+	    PlayerState
+	 else
+	    NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
+	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	    {Print 'Le joueur smart a une cible'}
+	    NewPlayerState
+	 end
       else
 	 PlayerState
       end
