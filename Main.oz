@@ -236,41 +236,41 @@ in
 
   proc {LaunchSimultaneous Players GameState GUI}
       proc {Turn Player}
-         Answer GS1 GS2 GS3 GS4 in 
+         Answer1 Answer2 Answer3 Answer4 GS1 GS2 GS3 GS4 in 
          {Send Player.port dive}
-         {Send Player.port isDead(?Answer)}
-         {Wait Answer}
-         if(Answer == true) then
+         {Send Player.port isDead(?Answer1)}
+         {Wait Answer1}
+         if(Answer1 == true) then
             GS1={UpdateListOfPlayers Player GameState}
          else 
-            if(GameState.alive==1) then {Print 'Partie finie'}
+            if(GameState.alive==1) then {Print 'Partie finie'} skip
             else
                {SimulateThinking}
                GS1={Move Player GameState GUI}
-               {Send Player.port isDead(?Answer)}
-               {Wait Answer}
-               if(Answer == true) then
+               {Send Player.port isDead(?Answer2)}
+               {Wait Answer2}
+               if(Answer2 == true) then
                   GS2={UpdateListOfPlayers Player GS1}
                else
-                  if(GameState.alive==1) then {Print 'Partie finie'}
+                  if(GameState.alive==1) then {Print 'Partie finie'} skip 
                   else 
                      {SimulateThinking}
                      GS2={ChargeItem Player GS1 GUI}
-                     {Send Player.port isDead(?Answer)}
-                     {Wait Answer}
-                     if(Answer == true) then
+                     {Send Player.port isDead(?Answer3)}
+                     {Wait Answer3}
+                     if(Answer3 == true) then
                         GS3={UpdateListOfPlayers Player GS2}
                      else
-                        if(GameState.alive==1) then {Print 'Partie finie'}
+                        if(GameState.alive==1) then {Print 'Partie finie'} skip
                         else
                            {SimulateThinking}
                            GS3 = {FireItem Player GS2 GUI}
-                           {Send Player.port isDead(?Answer)}
-                           {Wait Answer}
-                           if(Answer == true) then
+                           {Send Player.port isDead(?Answer4)}
+                           {Wait Answer4}
+                           if(Answer4 == true) then
                               GS4={UpdateListOfPlayers Player GS3}
                            else
-                              if(GameState.alive==1) then {Print 'Partie finie'}
+                              if(GameState.alive==1) then {Print 'Partie finie'} skip
                               else 
                                  {SimulateThinking}
                                  GS4={MineExplode Player GS3 GUI}
@@ -285,7 +285,7 @@ in
          end
       end
    in
-      {List.forAll Players (proc {$ Player} thread {Turn Player} end end)} 
+      {List.forAll Players (proc {$ Player} thread {Turn Player} end skip end)} 
    end
 
     %Send Say to all players
