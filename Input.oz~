@@ -51,13 +51,19 @@ in
 
 %%%% Description of the map %%%%
 
-   NRow = 4
-   NColumn = 4
+   NRow = 10
+   NColumn = 10
 
-   Map = [[0 0 0 0 ]
-	  [0 0 0 0 ]
-	  [0 0 0 1 ]
-	  [0 0 1 1 ]]
+   Map = [[0 0 0 0 0 1 0 0 0 0]
+	  [0 0 0 0 0 1 1 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 1 1 0 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 1]
+	  [0 0 0 0 0 0 0 0 0 1]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 1 1 0 0 0 0 0]
+	  [0 0 1 1 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]]
 
 %%%% Players description %%%%
 
@@ -76,13 +82,13 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 4
+   MaxDamage = 5
 
 %%%% Number of load for each item %%%%
 
-   Missile = 2
+   Missile = 1
    Mine = 1
-   Sonar = 3
+   Sonar = 2
    Drone = 2
 
 %%%% Distances of placement %%%%

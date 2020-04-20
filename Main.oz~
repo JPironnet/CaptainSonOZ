@@ -351,6 +351,7 @@ in
 	     {Send H.port sayPassingSonar(?ID ?Answer)}
 	     {Wait ID}
 	     {Wait Answer}
+	     {Print 'je suis main'}
 	     {Send Player.port sayAnswerSonar(ID Answer)}
 	     {BroadCastMessage GUI_port GameState T Player Say}
 	  end

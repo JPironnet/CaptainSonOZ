@@ -488,19 +488,22 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
+       {Print 'je suis la joueur1'}
       if Choice==0 then
-	 Random={OS.rand} mod 1+Input.nColumn
+	 Random={OS.rand}mod(1+Input.nColumn)
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	    {Print 'je suis la joueur1 aa'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
 	    {SayPassingSonar ID Answer PlayerState}
 	 end
       else
-	 Random={OS.rand} mod 1+Input.nRow
+	 Random={OS.rand}mod(1+Input.nRow)
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
+	     {Print 'je suis la joueur1 bb'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
-	     PlayerState
+	    PlayerState
 	 else
 	    {SayPassingSonar ID Answer PlayerState}
 	 end
