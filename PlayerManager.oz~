@@ -2,7 +2,8 @@
 %Adding players to the list
 functor
 import
-	Player
+   Player
+   Player2
 	PlayerSmart
 export
 	playerGenerator:PlayerGenerator
