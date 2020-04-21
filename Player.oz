@@ -36,7 +36,8 @@ define
    IsLimitOfMap
    RandomPosition   
    RandomRowOrColumn
-   HelpII
+   RandomPositionMine
+   RandomPositionMissile
 
 
 in
@@ -214,7 +215,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	       {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x-1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -229,7 +229,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	       {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x+1 y:PlayerState.position.y)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -244,7 +243,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	        {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y+1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -259,7 +257,6 @@ in
 	       {Move ID Position Direction PlayerState} 
 	    else
 	       Direction={Nth Poles Dir}
-	        {Print 'Le joueur a choisi la direction : '} 
 	       {Print Direction}
 	       Position=pt(x:PlayerState.position.x y:PlayerState.position.y-1)
 	       NewPlayerState={AdjoinList PlayerState [position#Position visited#(Position|PlayerState.visited)]}
@@ -267,8 +264,7 @@ in
 	    end
 	 end
       else
-	 Direction={Nth Poles Dir}
-	  {Print 'Le joueur a choisi la direction : '} 
+	 Direction={Nth Poles Dir} 
 	 {Print Direction}
 	 Position=PlayerState.position
 	 NewPlayerState={AdjoinList PlayerState [visited#[Position] surface#true]}
@@ -345,18 +341,18 @@ in
 
    %ID and KindFire are binds as follow :
    %ID::=<id> and KindFire::=<fireitem>|null
-   %KindFire=nil if the player does not hae enough charge to fire an item
+   %KindFire=nil if the player does not have enough charge to fire an item
    %Returns the new state of the player
    fun{FireItem ID KindFire PlayerState}
       NewPlayerState in
       ID=PlayerState.id
       if (PlayerState.mineAmmo > 0) then
-	 KindFire = mine({RandomPosition})
+	 KindFire = mine({RandomPositionMine PlayerState})
 	 {Print 'Le joueur a pose une mine'}
 	 NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
 	 NewPlayerState
       elseif (PlayerState.missileAmmo > 0) then
-	 KindFire = missile({RandomPosition})
+	 KindFire = missile({RandomPositionMissile PlayerState})
 	 {Print 'le joueur a deploye un missile'}
 	 NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
 	 NewPlayerState
@@ -372,7 +368,6 @@ in
 	 NewPlayerState
       else 
 	 KindFire = nil
-	 {Print 'Le joueur n a rien lance'}
 	 NewPlayerState=PlayerState
 	 NewPlayerState
       end
@@ -433,7 +428,7 @@ in
       NewPlayerState Manhattan Damage
    in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan du joueur est de :'}
+      {Print 'La distance Manhattan du joueur 2 est de :'}
       {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
@@ -494,17 +489,20 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
+      {Print 'Je suis la joueur2'}
       if Choice==0 then
-	 Random={OS.rand} mod 1+Input.nColumn
+	 Random={OS.rand} mod (1+Input.nColumn)
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	    {Print 'je suis la aa joueur2'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
 	    {SayPassingSonar ID Answer PlayerState}
 	 end
       else
-	 Random={OS.rand} mod 1+Input.nRow
+	 Random={OS.rand} mod (1+Input.nRow)
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
+	    {Print 'je suis la bb joueur2'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
 	     PlayerState
 	 else
@@ -532,8 +530,8 @@ in
    %Returns a position and Position::=pt(x:<Row> y:<Column>)
    fun {RandomPosition}
       Row Column Position in
-      Row = {OS.rand} mod Input.nRow+1
-      Column = {OS.rand} mod Input.nColumn+1
+      Row = {OS.rand} mod (Input.nRow+1)
+      Column = {OS.rand} mod (Input.nColumn+1)
       if {IsPositionOk Row Column}==1 then
 	 Position=pt(x:Row y:Column)
 	 Position
@@ -542,6 +540,40 @@ in
       end
    end
 
+   fun{RandomPositionMine PlayerState}
+      Row Column Position Manhattan in
+      Row = {OS.rand} mod (Input.nRow+1)
+      Column = {OS.rand} mod (Input.nColumn+1)
+      Manhattan={Abs PlayerState.position.x-Row}+{Abs PlayerState.position.y-Column}
+      if Manhattan >= Input.minDistanceMine andthen Manhattan =< Input.maxDistanceMine then
+	 if {IsPositionOk Row Column}==1 then
+	    Position=pt(x:Row y:Column)
+	    Position
+	 else
+	    {RandomPositionMine PlayerState}
+	 end
+      else
+	 {RandomPositionMine PlayerState}
+      end
+   end
+
+    fun{RandomPositionMissile PlayerState}
+      Row Column Position Manhattan in
+      Row = {OS.rand} mod (Input.nRow+1)
+      Column = {OS.rand} mod (Input.nColumn+1)
+      Manhattan={Abs PlayerState.position.x-Row}+{Abs PlayerState.position.y-Column}
+      if Manhattan >= Input.minDistanceMissile andthen Manhattan =< Input.maxDistanceMissile then
+	 if {IsPositionOk Row Column}==1 then
+	    Position=pt(x:Row y:Column)
+	    Position
+	 else
+	    {RandomPositionMissile PlayerState}
+	 end
+      else
+	 {RandomPositionMine PlayerState}
+      end
+   end
+      
    fun {RandomRowOrColumn}
       Choice Drone Result in  
       Choice = {OS.rand} mod 2

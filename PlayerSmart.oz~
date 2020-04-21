@@ -317,23 +317,29 @@ in
 	 else %if the player has a good target
 	    Manhattan in
 	    Manhattan={Abs (PlayerState.position.x - PlayerState.target.position.x)}+ {Abs (PlayerState.position.y - PlayerState.target.position.y)}
-	    if Manhattan>=2 then %pour que le missile explose pas sur lui
+	    if Manhattan>=2 andthen Manhattan =< Input.MaxDistanceMissile then 
 	       if PlayerState.missileAmmo>0 then
 		  KindFire = missile(PlayerState.target.position)%the missile is fired at the possible position of the target
 		  {Print 'Le joueur smart a deploye un missile'}
 		  NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
-		  NewPlayerState
+		     NewPlayerState
 	       else
 		  KindFire=nil
 		  NewPlayerState=PlayerState
 		  NewPlayerState
 	       end
 	    else
-	       if(PlayerState.mineAmmo>0) then
-		  KindFire=mine(PlayerState.target.position)
-		  {Print 'Le joueur smart a pose une mine'}
-		  NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
-		  NewPlayerState
+	       if  Manhattan =< Input.MaxDistanceMine andthen  Manhattan >= Input.MinDistanceMine then
+		  if(PlayerState.mineAmmo>0) then
+		     KindFire=mine(PlayerState.target.position)
+		     {Print 'Le joueur smart a pose une mine'}
+		     NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
+		     NewPlayerState
+		  else
+		     KindFire=nil
+		     NewPlayerState=PlayerState
+		     NewPlayerState
+		  end
 	       else
 		  KindFire=nil
 		  NewPlayerState=PlayerState
@@ -563,17 +569,21 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
+      {Print Choice}
+      {Print 'je suis la smart'}
       if Choice==0 then
-	 Random={OS.rand} mod 1+Input.nColumn
+	 Random={OS.rand}mod(1+Input.nColumn)
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	    {Print 'je suis la aa smart'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
 	    {SayPassingSonar ID Answer PlayerState}
 	 end
       else
-	 Random={OS.rand} mod 1+Input.nRow
+	 Random={OS.rand}mod(1+Input.nRow)
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
+	     {Print 'je suis la bb smart'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
 	    PlayerState
 	 else
@@ -587,10 +597,14 @@ in
    fun{SayAnswerSonar ID Answer PlayerState}
       NewPlayerState NewTarget in
       if PlayerState.target.id==0 then
-	 NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
-	 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	 {Print 'Le joueur smart a une cible'}
-	 NewPlayerState
+	 if ID.id==PlayerState.id.id then
+	    PlayerState
+	 else
+	    NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
+	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	    {Print 'Le joueur smart a une cible'}
+	    NewPlayerState
+	 end
       else
 	 PlayerState
       end

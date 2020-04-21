@@ -47,24 +47,29 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
-   NRow = 5
-   NColumn = 6
+   NRow = 10
+   NColumn = 10
 
-   Map = [[0 0 0 0 0 0]
-	  [0 0 0 0 0 0]
-	  [0 0 0 1 1 0]
-	  [0 0 1 1 0 0]
-	  [0 0 0 0 0 0]]
+   Map = [[0 0 0 0 0 1 0 0 0 0]
+	  [0 0 0 0 0 1 1 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 1 1 0 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 1]
+	  [0 0 0 0 0 0 0 0 0 1]
+	  [0 0 0 0 0 0 0 0 0 0]
+	  [0 0 0 1 1 0 0 0 0 0]
+	  [0 0 1 1 0 0 0 0 0 0]
+	  [0 0 0 0 0 0 0 0 0 0]]
 
 %%%% Players description %%%%
 
-   NbPlayer = 2
-   Players = [player1 player2]
-   Colors = [red green]
+   NbPlayer = 3
+   Players = [player1 player2 player3]
+   Colors = [yellow green blue]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -77,12 +82,12 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 3
+   MaxDamage = 5
 
 %%%% Number of load for each item %%%%
 
-   Missile = 2
-   Mine = 1
+   Missile = 1
+   Mine = 2
    Sonar = 3
    Drone = 2
 

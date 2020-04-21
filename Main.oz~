@@ -149,8 +149,7 @@ in
 	  {BroadCastMessage GUI GameState GameState.playerslist Player sayMissileExplode(ID KindFire.1)}
        elseif {Label KindFire}==mine then
 	  {Send GUI putMine(ID KindFire.1)} %Sends to GUI to draw a mine at the position KindFire.1 because of mine(<Position>)
-	  {Print 'Il a pose une mine'}
-       elseif {Label KindFire}==sonar then
+       elseif KindFire==sonar then
 	  {BroadCastMessage GUI GameState GameState.playerslist Player sayPassingSonar()}
        elseif {Label KindFire}==drone then
 	  {BroadCastMessage GUI GameState GameState.playerslist Player sayPassingDrone(KindFire)}
@@ -209,7 +208,6 @@ in
 	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
 	     Answer GS1 GS2 GS3 GS4 GS5 in
-	     {Delay 1000}
 	     {Print '#########################################################'}
 	     {Send H.port isDead(?Answer)}
 	     {Wait Answer}
@@ -305,15 +303,19 @@ in
 		   {Print 'Le joueur a eu x damage et lui reste y life :'}
 		   {Print Damage}
 		   {Print Life}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDamageTaken(ID Damage Life)} % Broadcast
 		   {Send GUI_port lifeUpdate(ID Life)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dune mine'}
-		    %{BroadCastMessage GUI_port GameState GameState.PlayersList sayDeath(ID)} % Broadcast
+		   {Send GUI_port lifeUpdate(ID 0)}
 		   {Send GUI_port removePlayer(ID)}
-		    {BroadCastMessage GUI_port GameState T Player Say}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port GameState T Player Say}
 		end
+	     else
+		{Print 'Pas de degat'}
+		{BroadCastMessage GUI_port GameState T Player Say}
 	     end
 	  end
        [] sayMissileExplode(ID Position) then
@@ -333,10 +335,14 @@ in
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		[] sayDeath(ID) then
 		   {Print 'Un joueur est mort a cause dun missile'}
-		   %{BroadCastMessage GUI_port PlayersList GameState Player sayDeath(ID)} % Broadcast
+		   {Send GUI_port lifeUpdate(ID 0)}
 		   {Send GUI_port removePlayer(ID)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
 		   {BroadCastMessage GUI_port GameState T Player Say}
 		end
+	     else
+		{Print 'Pas de degat'}
+		{BroadCastMessage GUI_port GameState T Player Say}
 	     end
 	  end
        [] sayPassingSonar() then
@@ -345,6 +351,7 @@ in
 	     {Send H.port sayPassingSonar(?ID ?Answer)}
 	     {Wait ID}
 	     {Wait Answer}
+	     {Print 'je suis main'}
 	     {Send Player.port sayAnswerSonar(ID Answer)}
 	     {BroadCastMessage GUI_port GameState T Player Say}
 	  end
@@ -390,7 +397,7 @@ in
     %Creates players
     %RecordPlayers has a port, a turnToWait and a alive field
     RecordPlayers = {GeneratePlayers}
-   {Print 'Creation des joueurs '}
+    {Print 'Creation des joueurs '}
 
     %Ask players to choose an initial position and send to GUI
     {InitialPosition RecordPlayers GUI_Port}
