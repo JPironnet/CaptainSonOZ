@@ -205,6 +205,7 @@ in
 	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
 	     Answer GS1 GS2 in
+	     {Delay 500}
 	     {Print '#########################################################'}
 	     {Send H.port isDead(?Answer)}
 	     {Wait Answer}

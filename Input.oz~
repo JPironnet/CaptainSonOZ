@@ -47,7 +47,7 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
@@ -69,7 +69,7 @@ in
 
    NbPlayer = 3
    Players = [player1 player2 player3]
-   Colors = [yellow green blue]
+   Colors = [black green blue]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -87,8 +87,8 @@ in
 %%%% Number of load for each item %%%%
 
    Missile = 1
-   Mine = 1
-   Sonar = 2
+   Mine = 2
+   Sonar = 3
    Drone = 2
 
 %%%% Distances of placement %%%%
