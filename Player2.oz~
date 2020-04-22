@@ -428,8 +428,6 @@ in
       NewPlayerState Manhattan Damage
    in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
-      {Print 'La distance Manhattan du joueur 2 est de :'}
-      {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
 	 Damage=0
@@ -489,11 +487,9 @@ in
       Choice Random in
       ID=PlayerState.id
       Choice={OS.rand} mod 2
-      {Print 'Je suis la joueur2'}
       if Choice==0 then
 	 Random={OS.rand} mod (1+Input.nColumn)
 	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
-	    {Print 'je suis la aa joueur2'}
 	    Answer=pt(x:PlayerState.position.x y:Random)
 	    PlayerState
 	 else
@@ -502,7 +498,6 @@ in
       else
 	 Random={OS.rand} mod (1+Input.nRow)
 	 if {IsPositionOk Random PlayerState.position.y}==1 then
-	    {Print 'je suis la bb joueur2'}
 	    Answer=pt(x:Random y:PlayerState.position.y)
 	     PlayerState
 	 else

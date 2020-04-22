@@ -7,11 +7,12 @@ import
    OS
    System(showInfo:Print)
 define
-    GUI_Port
+   GUI_Port
    RecordPlayers
    DeadPort
    StartDeadPort
    TreatStream
+   GenerateDeadList
 
    GeneratePlayers
    CanMove
@@ -31,6 +32,7 @@ define
    BroadCastMessage
 
    GameState
+   
 in
    
     %Function to generate players at the beginning of the game
@@ -207,12 +209,12 @@ in
        else
 	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
-	     Answer GS1 GS2 in
-	     {Delay 500}
+	     Answer1 Answer2 GS1 GS2 in
+	     {Delay 100}
 	     {Print '#########################################################'}
-	     {Send H.port isDead(?Answer)}
-	     {Wait Answer}
-	     if Answer==true then %Step one of the loop. Check if the player is dead.
+	     {Send H.port isDead(?Answer1)}
+	     {Wait Answer1}
+	     if Answer1==true then %Step one of the loop. Check if the player is dead.
 		GS1={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
 		{LaunchTurnByTurn T GS1 GUI} %it is the turn of the next player 
 	     else
@@ -222,133 +224,149 @@ in
 
 		else
 		   {Send H.port dive} %If he can move, the player dives
-		   GS2={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
-		   {ChargeItem H GS2 GUI} %Step three
-		   {FireItem H GS2 GUI} %Step four
-		   {MineExplode H GS2 GUI} %Step five
-		   {LaunchTurnByTurn T GS2 GUI}
+		   GS1={Move H GameState GUI} %Step two of the loop. The player moves and GS2 is a new version updated of GameState
+		   {ChargeItem H GS1 GUI} %Step three
+		   {FireItem H GS1 GUI} %Step four
+		   {Send H.port isDead(?Answer2)}
+		   {Wait Answer2}
+		   if Answer2==true then %if the player is dead because of his own missile
+		      GS2={UpdateListOfPlayers H GameState} % GameState is updated with the player H removed of playerslist because player H is dead
+		      {LaunchTurnByTurn T GS2 GUI} %it is the turn of the next player
+		   else
+		      {MineExplode H GS1 GUI} %Step five
+		      {LaunchTurnByTurn T GS1 GUI}
+		   end
 		end
 	     end
 	  end
        end
     end
     
-   proc {LaunchSimultaneous Players GameState GUI DeadPort}
-      proc {Turn Player}
-	      Answer Number  GS1  in
-	      {Print '#########################################################'}
-	      {Send Player.port isDead(?Answer)}
-	      {Wait Answer}
-	      if(Answer==true) then
-	         {Print 'JE SUIS DEAD'}
-	         {Send DeadPort dead}
-	         skip
-	      else
-	         {Send DeadPort alive(?Number)}
-	         {Wait Number}
-	         if Number==1 then
-		         {Print 'VICTORY ROYALE'}
-		         skip
-	         else
-		         {Send Player.port dive}
-		         {SimulateThinking}
-		         GS1={Move Player GameState GUI}
-		         if(Player.turnToWait==Input.turnSurface) then
-		            NewPlayer in
-		            NewPlayer = {AdjoinList Player [turnToWait#0]}
-                  {Delay Input.turnSurface}
-		            {Turn NewPlayer}
-		         else
-		            {SimulateThinking}
-		            {ChargeItem Player GS1 GUI}
-		            {SimulateThinking}
-		            {FireItem Player GS1 GUI}
-		            {SimulateThinking}
-		            {MineExplode Player GS1 GUI}
-		            {Turn Player}
-		         end
-	         end
-	      end
-      end
-   in
-      {List.forAll Players (proc {$ Player} thread {Turn Player} end end) }
-   end
-
+    proc {LaunchSimultaneous Players GameState GUI DeadPort}
+       proc {Turn Player}
+	  Number  GS1 Answer  in
+	  {Print '#########################################################'}
+	  {Send Player.port isDead(?Answer)}
+	  {Wait Answer}
+	  if Answer==true then skip
+	  else
+	     {Send DeadPort alive(?Number)}
+	     {Wait Number}
+	     if Number==1 then
+		{Print 'VICTORY ROYALE'}
+		skip
+	     else
+		{Send Player.port dive}
+		{SimulateThinking}
+		GS1={Move Player GameState GUI}
+		if(Player.turnToWait==Input.turnSurface) then
+		   NewPlayer in
+		   {Delay Input.turnSurface}
+		   NewPlayer = {AdjoinList Player [turnToWait#0]}
+		   {Turn NewPlayer}
+		else
+		   {SimulateThinking}
+		   {ChargeItem Player GS1 GUI}
+		   {SimulateThinking}
+		   {FireItem Player GS1 GUI}
+		   {SimulateThinking}
+		   {MineExplode Player GS1 GUI}
+		   {Turn Player}
+		end
+	     end
+	  end
+       end
+    in
+       {List.forAll Players (proc {$ Player} thread {Turn Player} end end) }
+    end
 
     %Send Say to all players
     %Return the state of the game
-   proc{BroadCastMessage GUI_port GameState PlayersList Player Say}
-      Message ID Answer in
-      case Say
-      of sayMineExplode(ID Position) then
-	      case PlayersList of nil then skip
-	      [] H|T then
-	         {Send H.port sayMineExplode(ID Position ?Message)} 
-	         {Wait Message}
-	         if (Message \= null) then								
-		         case Message of sayDamageTaken(ID Damage Life) then
-		            {Send GUI_port lifeUpdate(ID Life)}
-		            {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
-		            {BroadCastMessage GUI_port GameState T Player Say}
-               [] sayDeath(ID) then
-		            {Print 'Un joueur est mort a cause dune mine'}
-		            {Send GUI_port lifeUpdate(ID 0)}
-		            {Send GUI_port removePlayer(ID)}
-		            {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
-		            {BroadCastMessage GUI_port GameState T Player Say}
-		         end
-	         else
-		         {BroadCastMessage GUI_port GameState T Player Say}
-	         end
+    proc{BroadCastMessage GUI_port GameState PlayersList Player Say}
+       Message ID Answer in
+       case Say
+       of sayMineExplode(ID Position) then
+	  case PlayersList of nil then skip
+	  [] H|T then
+	     {Send H.port sayMineExplode(ID Position ?Message)} 
+	     {Wait Message}
+	     if (Message \= null) then								
+		case Message of sayDamageTaken(ID Damage Life) then
+		   {Send GUI_port lifeUpdate(ID Life)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
+		   {BroadCastMessage GUI_port GameState T Player Say}
+		[] sayDeath(ID) then
+		   {Print 'Un joueur est mort a cause dune mine'}
+		   {Send DeadPort dead(ID)} %send to the DeadPort the message dead with the id of the killed player
+		   {Send GUI_port removePlayer(ID)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port GameState T Player Say}
+		end
+	     else
+		{BroadCastMessage GUI_port GameState T Player Say}
+	     end
+	  end
+       [] sayMissileExplode(ID Position) then
+	  case PlayersList of nil then skip
+	  [] H|T then 
+	     {Send H.port sayMissileExplode(ID Position ?Message)} 
+	     {Wait Message}
+	     if (Message \= null) then								
+		case Message 
+		of sayDamageTaken(ID Damage Life) then
+		   {Send GUI_port lifeUpdate(ID Life)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
+		   {BroadCastMessage GUI_port GameState T Player Say}
+		[] sayDeath(ID) then
+		   {Print 'Un joueur est mort a cause dun missile'}
+		   {Send DeadPort dead(ID)}
+		   {Send GUI_port removePlayer(ID)}
+		   {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
+		   {BroadCastMessage GUI_port GameState T Player Say}
+		end
+	     else
+		{BroadCastMessage GUI_port GameState T Player Say}
+	     end
+	  end
+       [] sayPassingSonar() then
+	  case PlayersList of nil then skip
+	  [] H|T then
+	     Ans in
+	     {Send H.port isDead(?Ans)}
+	     if Ans==true then
+		{BroadCastMessage GUI_port GameState T Player Say}
+	     else
+		{Send H.port sayPassingSonar(?ID ?Answer)}
+		{Wait ID}
+		{Wait Answer}
+		{Print ID.id}
+		{Send Player.port sayAnswerSonar(ID Answer)}
+		{BroadCastMessage GUI_port GameState T Player Say}
+	     end
+	  end
+       [] sayPassingDrone(Drone) then
+	   case PlayersList of nil then skip
+	   [] H|T then
+	      Ans in
+	      {Send H.port isDead(?Ans)}
+	      if Ans==true then
+		 {BroadCastMessage GUI_port GameState T Player Say}
+	      else
+		 {Send H.port sayPassingDrone(Drone ?ID ?Answer)}
+		 {Wait ID}
+		 {Wait Answer}
+		 {Send Player.port sayAnswerDrone(Drone ID Answer)}
+		 {BroadCastMessage GUI_port GameState T Player Say}
 	      end
-      [] sayMissileExplode(ID Position) then
-	      case PlayersList of nil then skip
-	      [] H|T then 
-	         {Send H.port sayMissileExplode(ID Position ?Message)} 
-	         {Wait Message}
-	         if (Message \= null) then								
-		         case Message 
-		         of sayDamageTaken(ID Damage Life) then
-		            {Send GUI_port lifeUpdate(ID Life)}
-		            {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDamageTaken(ID Damage Life)} % Broadcast
-		            {BroadCastMessage GUI_port GameState T Player Say}
-		         [] sayDeath(ID) then
-		            {Print 'Un joueur est mort a cause dun missile'}
-		            {Send GUI_port lifeUpdate(ID 0)}
-		            {Send GUI_port removePlayer(ID)}
-		            {BroadCastMessage GUI_port GameState GameState.playerslist Player sayDeath(ID)} % Broadcast
-		            {BroadCastMessage GUI_port GameState T Player Say}
-		         end
-	         else
-		         {BroadCastMessage GUI_port GameState T Player Say}
-	         end
-	      end
-      [] sayPassingSonar() then
-	      case PlayersList of nil then skip
-	      [] H|T then
-	         {Send H.port sayPassingSonar(?ID ?Answer)}
-	         {Wait ID}
-	         {Wait Answer}
-	         {Send Player.port sayAnswerSonar(ID Answer)}
-	         {BroadCastMessage GUI_port GameState T Player Say}
-	      end
-      [] sayPassingDrone(Drone) then
-	      case PlayersList of nil then skip
-	      [] H|T then
-	      {Send H.port sayPassingDrone(Drone ?ID ?Answer)}
-	      {Wait ID}
-	      {Wait Answer}
-	      {Send Player.port sayAnswerDrone(Drone ID Answer)}
-	      {BroadCastMessage GUI_port GameState T Player Say}
-	      end
-      else
-	      case PlayersList of nil then skip
-	      [] H|T then
-	         {Send H.port Say}
-	         {BroadCastMessage GUI_port GameState T Player Say}
-	      end
-      end							
-   end
+	   end
+       else
+	  case PlayersList of nil then skip
+	  [] H|T then
+	     {Send H.port Say}
+	     {BroadCastMessage GUI_port GameState T Player Say}
+	  end
+       end							
+    end
     
      
     proc{InitialPosition RecordPlayers GUI}
@@ -389,22 +407,39 @@ in
        DeadPort
     in
        {NewPort DeadStream DeadPort}
-       thread {TreatStream DeadStream Input.nbPlayer} end
+       thread {TreatStream DeadStream Input.nbPlayer nil} end
        DeadPort
     end
 
-    proc{TreatStream DeadStream NbPlayers}
+    proc{TreatStream DeadStream NbPlayers DeadList}
        case DeadStream
-       of dead|T then
-	  {TreatStream T NbPlayers-1}
+       of dead(ID)|T then
+	  NewDeadList in
+	  NewDeadList={GenerateDeadList ID DeadList}
+	  if NewDeadList==nil then
+	     {TreatStream T NbPlayers DeadList}
+	  else
+	     {TreatStream T NbPlayers-1 NewDeadList}
+	  end
+	
        [] alive(Number)|T then
 	  Number=NbPlayers
-	  {TreatStream T NbPlayers}
+	  {TreatStream T NbPlayers DeadList}
+	  
        else
-	  {TreatStream DeadStream NbPlayers}
+	  {TreatStream DeadStream NbPlayers DeadList}
        end
-    end	  
-    
+    end
+
+    fun{GenerateDeadList ID DeadList}
+       case DeadList of nil then ID|DeadList
+       [] H|T then
+	  if H==ID then nil
+	  else {GenerateDeadList ID T}
+	  end
+       end
+    end
+       
    {Delay 3000}
     %Lancement de la partie 
     if(Input.isTurnByTurn) then

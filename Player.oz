@@ -463,50 +463,60 @@ in
      {SayMissileExplode ID Position PlayerState Message}
    end
 
-   fun{SayPassingDrone Drone ID Answer PlayerState}
-      ID=PlayerState.id
-      if {Label Drone.1}==row then
-	 if PlayerState.position.x==Drone.1.x then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      else
-	 if PlayerState.position.y==Drone.1.y then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      end
-      PlayerState
-   end
+  fun{SayPassingDrone Drone ID Answer PlayerState}
+     if PlayerState.alive==false then
+	ID=null
+	Answer=null
+	PlayerState
+     else
+	ID=PlayerState.id
+	if Drone.1==row then
+	   if PlayerState.position.x==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	else
+	   if PlayerState.position.y==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	end
+	PlayerState
+     end
+  end
 
    fun{SayAnswerDrone Drone ID Answer PlayerState}
       PlayerState
    end
 
    fun{SayPassingSonar ID Answer PlayerState}
-      Choice Random in
-      ID=PlayerState.id
-      Choice={OS.rand} mod 2
-      {Print 'Je suis la joueur2'}
-      if Choice==0 then
-	 Random={OS.rand} mod (1+Input.nColumn)
-	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
-	    {Print 'je suis la aa joueur2'}
-	    Answer=pt(x:PlayerState.position.x y:Random)
-	    PlayerState
-	 else
-	    {SayPassingSonar ID Answer PlayerState}
-	 end
+      if PlayerState.alive==false then
+	 ID=null
+	 Answer=null
+	 PlayerState
       else
-	 Random={OS.rand} mod (1+Input.nRow)
-	 if {IsPositionOk Random PlayerState.position.y}==1 then
-	    {Print 'je suis la bb joueur2'}
-	    Answer=pt(x:Random y:PlayerState.position.y)
-	     PlayerState
+	 Choice Random in
+	 ID=PlayerState.id
+	 Choice={OS.rand} mod 2
+	 if Choice==0 then
+	    Random={OS.rand} mod (1+Input.nColumn)
+	    if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	       {Print 'je suis la aa joueur2'}
+	       Answer=pt(x:PlayerState.position.x y:Random)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 else
-	    {SayPassingSonar ID Answer PlayerState}
+	    Random={OS.rand} mod (1+Input.nRow)
+	    if {IsPositionOk Random PlayerState.position.y}==1 then
+	       Answer=pt(x:Random y:PlayerState.position.y)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 end
       end
    end
@@ -578,12 +588,12 @@ in
       Choice Drone Result in  
       Choice = {OS.rand} mod 2
       if (Choice==0) then
-	 Result = {OS.rand} mod Input.nRow
-	 Drone = drone(row(x:Result))
+	 Result = {OS.rand} mod (1+Input.nRow)
+	 Drone = drone(row Result)
 	 Drone 
       else 
-	 Result = {OS.rand} mod Input.nColumn
-	 Drone = drone(column(y:Result))
+	 Result = {OS.rand} mod (1+Input.nColumn)
+	 Drone = drone(column Result)
 	 Drone 
       end
    end
