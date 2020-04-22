@@ -306,7 +306,7 @@ in
 	 if (PlayerState.target.isTarget==false) then %if the player has a target but does not have launched his drone
 	    if PlayerState.droneAmmo>0 then
 	       {Print 'Le joueur smart a lancer un drone'}
-	       KindFire=drone(row(x:PlayerState.target.position.x))
+	       KindFire=drone(row PlayerState.target.position.x)
 	       NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
 	       NewPlayerState
 	    else
@@ -329,7 +329,7 @@ in
 		  NewPlayerState
 	       end
 	    elseif  Manhattan =< Input.maxDistanceMine andthen  Manhattan >= Input.minDistanceMine then
-	       if(PlayerState.mineAmmo>0) then
+	       if(PlayerState.mineAmmo>0) andthen {IsPositionOk PlayerState.target.position.x PlayerState.target.position.y}==1 then
 		  KindFire=mine(PlayerState.target.position)
 		  {Print 'Le joueur smart a pose une mine'}
 		  NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
@@ -484,72 +484,85 @@ in
 
   %Binds ID and Answer. Answer is true if the question in Drone is true. False otherwise
   %Returns the state of the player 
-   fun{SayPassingDrone Drone ID Answer PlayerState}
-      ID=PlayerState.id
-      if {Label Drone.1}==row then
-	 if PlayerState.position.x==Drone.1.x then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      else
-	 if PlayerState.position.y==Drone.1.y then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      end
-      PlayerState
-   end
+  fun{SayPassingDrone Drone ID Answer PlayerState}
+     if PlayerState.alive==false then
+	ID=null
+	Answer=null
+	PlayerState
+     else
+	ID=PlayerState.id
+	if Drone.1==row then
+	   if PlayerState.position.x==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	else
+	   if PlayerState.position.y==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	end
+	PlayerState
+     end
+  end
 
    %If Answer is true, then the position is updated. Otherwise, the position is the same then the previsous
    %Returns the new state of the player with the target updated
-   fun{SayAnswerDrone Drone ID Answer PlayerState}
-      NewTarget NewPlayerState in
-      if PlayerState.target.id==0 then PlayerState
-      else
-	 if PlayerState.target.id==ID then
-	    if Answer==true then
-	       if {Label Drone.1}==row then
-		  NewTarget={AdjoinList PlayerState.target [position#pt(x:Drone.1.x y:PlayerState.target.position.y) isTarget#true]}
-		  NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	       else
-		  NewTarget={AdjoinList PlayerState.target [position#pt(x:PlayerState.target.position.x y:Drone.1.y) isTarget#true]}
-		  NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	       end
-	    else
-	       NewTarget={AdjoinList PlayerState.target [isTarget#true]}
-	       NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	    end
-	 else
-	    NewPlayerState=PlayerState
-	 end
-	 NewPlayerState
-      end
-   end			     
+  fun{SayAnswerDrone Drone ID Answer PlayerState}
+     if ID==null orelse ID.id==PlayerState.id.id orelse PlayerState.target.id==0 then %if it is the position of the player who launched the sonar
+	PlayerState
+     else
+	NewTarget NewPlayerState in
+	if PlayerState.target.id==ID then
+	   if Answer==true then
+	      if Drone.1==row then
+		 NewTarget={AdjoinList PlayerState.target [position#pt(x:Drone.2 y:PlayerState.target.position.y) isTarget#true]}
+		 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	      else
+		 NewTarget={AdjoinList PlayerState.target [position#pt(x:PlayerState.target.position.x y:Drone.2) isTarget#true]}
+		 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	      end
+	   else
+	      NewTarget={AdjoinList PlayerState.target [isTarget#true]}
+	      NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	   end
+	else
+	   NewPlayerState=PlayerState
+	end
+	NewPlayerState
+     end
+  end			     
 
    %The player decides to bind randomly a false row or column, the other is true
    %He checks if the position is ok, and if it is, binds Answer and ID is bind too
    %Returns the state of the player
    fun{SayPassingSonar ID Answer PlayerState}
-      Choice Random in
-      ID=PlayerState.id
-      Choice={OS.rand} mod 2
-      if Choice==0 then
-	 Random={OS.rand}mod(1+Input.nColumn)
-	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
-	    Answer=pt(x:PlayerState.position.x y:Random)
-	    PlayerState
-	 else
-	    {SayPassingSonar ID Answer PlayerState}
-	 end
+      if PlayerState.alive==false then
+	 ID=null
+	 Answer=null
+	 PlayerState
       else
-	 Random={OS.rand}mod(1+Input.nRow)
-	 if {IsPositionOk Random PlayerState.position.y}==1 then
-	    Answer=pt(x:Random y:PlayerState.position.y)
-	    PlayerState
+	 Choice Random in
+	 ID=PlayerState.id
+	 Choice={OS.rand} mod 2
+	 if Choice==0 then
+	    Random={OS.rand}mod(1+Input.nColumn)
+	    if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	       Answer=pt(x:PlayerState.position.x y:Random)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 else
-	    {SayPassingSonar ID Answer PlayerState}
+	    Random={OS.rand}mod(1+Input.nRow)
+	    if {IsPositionOk Random PlayerState.position.y}==1 then
+	       Answer=pt(x:Random y:PlayerState.position.y)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 end
       end
    end
@@ -557,17 +570,17 @@ in
    %If the player has already a target, he does nothing. Otherwise, he has a new target
    %Returns the new state of the player
    fun{SayAnswerSonar ID Answer PlayerState}
-      NewPlayerState NewTarget in
-      if PlayerState.target.id==0 then
-	 if ID.id==PlayerState.id.id then %if it is the position of the player who launched the sonar
-	    PlayerState
-	 else
+      if ID==null orelse ID.id==PlayerState.id.id then %if it is the position of the player who launched the sonar
+	 PlayerState
+      else
+	 NewPlayerState NewTarget in
+	 if PlayerState.target.id==0 then
 	    NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
 	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
 	    NewPlayerState
+	 else
+	    PlayerState
 	 end
-      else
-	 PlayerState
       end
    end
 

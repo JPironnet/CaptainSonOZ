@@ -47,29 +47,30 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
-   NRow = 5
-   NColumn = 5
+   NRow = 6
+   NColumn = 6
 
-   Map = [[0 0 0 0 0]
-	  [0 0 0 0 0]
-	  [0 0 0 0 0]
-	  [0 1 1 0 0]
-	  [0 0 0 0 0]]
+   Map = [[0 0 0 0 0 0]
+	  [0 1 1 0 0 0]
+	  [0 0 1 0 0 0]
+	  [0 0 0 0 0 0]
+	  [0 0 0 0 0 1]
+	  [1 1 0 0 0 0]]
 
 %%%% Players description %%%%
 
-   NbPlayer = 2
-   Players = [player1 player2]
-   Colors = [black green]
+   NbPlayer = 3
+   Players = [player1 player2 player3]
+   Colors = [black blue red]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
-   ThinkMin = 500
-   ThinkMax = 3000
+   ThinkMin = 100
+   ThinkMax = 200
 
 %%%% Surface time/turns %%%%
 
@@ -77,7 +78,7 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 5
+   MaxDamage = 2
 
 %%%% Number of load for each item %%%%
 
