@@ -248,7 +248,9 @@ in
 	  {Print '#########################################################'}
 	  {Send Player.port isDead(?Answer)}
 	  {Wait Answer}
-	  if Answer==true then skip
+	  if Answer==true then
+	     GS1={UpdateListOfPlayers Player GameState}
+	     skip
 	  else
 	     {Send DeadPort alive(?Number)}
 	     {Wait Number}
