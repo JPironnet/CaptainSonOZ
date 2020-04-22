@@ -158,7 +158,7 @@ in
 		       position:Position
 		       life:Input.maxDamage
 		       surface:true
-		       visited:nil %liste des positions entre 2 surfaces
+		       visited:nil %list of visited positions between two surfaces
 		       alive:true
 		       mineCharge:0
 		       mineAmmo:0

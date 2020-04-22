@@ -47,7 +47,7 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = false
+   IsTurnByTurn = true
 
 %%%% Description of the map %%%%
 
@@ -89,10 +89,10 @@ in
 
 %%%% Distances of placement %%%%
 
-   MinDistanceMine = 1
+   MinDistanceMine = 0
    MaxDistanceMine = 2
    MinDistanceMissile = 1
-   MaxDistanceMissile = 4
+   MaxDistanceMissile = 5
 
 %%%% Waiting time for the GUI between each effect %%%%
 

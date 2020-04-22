@@ -577,9 +577,20 @@ in
 	 if PlayerState.target.id==0 then
 	    NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
 	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	    {Print 'Le player smart a une cible'}
 	    NewPlayerState
 	 else
-	    PlayerState
+	    Distance NewDistance in
+	    Distance={Abs PlayerState.position.x-PlayerState.target.position.x} + {Abs PlayerState.position.y-PlayerState.target.position.y}
+	    NewDistance={Abs PlayerState.position.x-Answer.x} + {Abs PlayerState.position.y-Answer.y}
+	    if NewDistance<Distance then
+	       NewTarget={AdjoinList PlayerState.target [id#ID position#Answer]}
+	       NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	       {Print 'Le player smart a change de cible'}
+	       NewPlayerState
+	    else
+	       PlayerState
+	    end
 	 end
       end
    end

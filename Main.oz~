@@ -248,28 +248,37 @@ in
 	  {Wait Answer}
 	  if Answer==true then skip
 	  else
-	     {Send Player.port dive}
-	     {SimulateThinking}
-	     GS1={Move Player GameState GUI}
-	     if(Player.turnToWait==Input.turnSurface) then
-		NewPlayer in
-		{Delay Input.turnSurface}
-		NewPlayer = {AdjoinList Player [turnToWait#0]}
-		{Turn NewPlayer}
+	     {Send DeadPort alive(?Number)}
+	     {Wait Number}
+	     if Number==1 then
+		{Print 'VICTOIRE'}
+		skip
 	     else
+		{Send Player.port dive}
 		{SimulateThinking}
-		{ChargeItem Player GS1 GUI}
-		{SimulateThinking}
-		{FireItem Player GS1 GUI}
-		{SimulateThinking}
-		{MineExplode Player GS1 GUI}
-		{Send DeadPort alive(?Number)}
-		{Wait Number}
-		if Number==1 then
-		   {Print 'VICTOIRE'}
-		   skip
+		GS1={Move Player GameState GUI}
+		if(Player.turnToWait==Input.turnSurface) then
+		   NewPlayer in
+		   {Delay Input.turnSurface}
+		   NewPlayer = {AdjoinList Player [turnToWait#0]}
+		   {Turn NewPlayer}
 		else
-		   {Turn Player}
+		   {SimulateThinking}
+		   {ChargeItem Player GS1 GUI}
+		   {SimulateThinking}
+		   {FireItem Player GS1 GUI}
+		   if Answer==true then
+		       if Number==1 then
+			  {Print 'LES DERNIERS JOUEURS SONT MORTS EN MEME TEMPS'}
+			 skip
+		       else
+			  skip
+		       end
+		   else
+		      {SimulateThinking}
+		      {MineExplode Player GS1 GUI}
+		      {Turn Player}
+		   end
 		end
 	     end
 	  end

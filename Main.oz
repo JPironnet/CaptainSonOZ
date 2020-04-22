@@ -204,12 +204,13 @@ in
     end
 
     proc{LaunchTurnByTurn Players GameState GUI}
-       if GameState.alive==1 then skip %it is the end of the game
+       if GameState.alive==1 then {Print 'VICTOIRE'} skip %it is the end of the game
        else
 	  case Players of nil then {LaunchTurnByTurn GameState.playerslist GameState GUI}
 	  [] H|T then
 	     Answer1 Answer2 GS1 GS2 in
 	     {Print '#########################################################'}
+	     {Delay 200}
 	     {Send H.port isDead(?Answer1)}
 	     {Wait Answer1}
 	     if Answer1==true then %Step one of the loop. Check if the player is dead.
