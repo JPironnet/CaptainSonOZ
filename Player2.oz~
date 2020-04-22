@@ -463,14 +463,14 @@ in
 
    fun{SayPassingDrone Drone ID Answer PlayerState}
       ID=PlayerState.id
-      if {Label Drone.1}==row then
-	 if PlayerState.position.x==Drone.1.x then
+      if Drone.1==row then
+	 if PlayerState.position.x==Drone.2 then
 	    Answer=true
 	 else
 	    Answer=false
 	 end
       else
-	 if PlayerState.position.y==Drone.1.y then
+	 if PlayerState.position.y==Drone.2 then
 	    Answer=true
 	 else
 	    Answer=false
@@ -573,12 +573,12 @@ in
       Choice Drone Result in  
       Choice = {OS.rand} mod 2
       if (Choice==0) then
-	 Result = {OS.rand} mod Input.nRow
-	 Drone = drone(row(x:Result))
+	 Result = {OS.rand} mod (1+Input.nRow)
+	 Drone = drone(row Result)
 	 Drone 
       else 
-	 Result = {OS.rand} mod Input.nColumn
-	 Drone = drone(column(y:Result))
+	 Result = {OS.rand} mod (1+Input.nColumn)
+	 Drone = drone(column Result)
 	 Drone 
       end
    end

@@ -291,48 +291,48 @@ in
       if (Choice==1) then
 	 if (PlayerState.mineCharge+1 == Input.mine) then
 	    KindItem ='mine'
-	     {Print 'Le joueur a construit une  mine'}
+	     {Print 'Le Player2 a construit une  mine'}
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#0 mineAmmo#PlayerState.mineAmmo+1]}
 	    NewPlayerState
 	 else 
 	    KindItem = nil
-	    {Print 'Le joueur a augmente ses charges de mines'}
+	    {Print 'Le Player2 a augmente ses charges de mines'}
 	    NewPlayerState={AdjoinList PlayerState [mineCharge#PlayerState.mineCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==2) then
 	 if (PlayerState.missileCharge+1 == Input.missile) then
 	    KindItem = 'missile'
-	    {Print 'Le joueur a construit un missile'}
+	    {Print 'Le Player2 a construit un missile'}
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#0 missileAmmo#PlayerState.missileAmmo+1]}
 	    NewPlayerState
 	 else 
 	    KindItem = nil
-	    {Print 'Le joueur a augmente ses charges de missiles'}
+	    {Print 'Le Player2 a augmente ses charges de missiles'}
 	    NewPlayerState={AdjoinList PlayerState [missileCharge#PlayerState.missileCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==3) then
 	 if (PlayerState.sonarCharge+1 == Input.sonar) then
 	    KindItem = 'sonar'
-	     {Print 'Le joueur a construit sonar'}
+	     {Print 'Le Player2 a construit sonar'}
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#0 sonarAmmo#PlayerState.sonarAmmo+1]}
 	    NewPlayerState
 	 else
 	    KindItem = nil
-	    {Print 'Le joueur a augmente ses charges de sonar'}
+	    {Print 'Le Player2 a augmente ses charges de sonar'}
 	    NewPlayerState={AdjoinList PlayerState [sonarCharge#PlayerState.sonarCharge+1]}
 	    NewPlayerState
 	 end
       elseif (Choice==4) then
 	 if (PlayerState.droneCharge+1 == Input.drone) then
 	    KindItem = 'drone'
-	     {Print 'Le joueur a construit un drone'}
+	     {Print 'Le Player2 a construit un drone'}
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#0 droneAmmo#PlayerState.droneAmmo+1]}
 	    NewPlayerState
 	 else
 	    KindItem = nil
-	    {Print 'Le joueur a augmente ses charges de drone'}
+	    {Print 'Le Player2 a augmente ses charges de drone'}
 	    NewPlayerState={AdjoinList PlayerState [droneCharge#PlayerState.droneCharge+1]}
 	    NewPlayerState
 	 end
@@ -348,22 +348,22 @@ in
       ID=PlayerState.id
       if (PlayerState.mineAmmo > 0) then
 	 KindFire = mine({RandomPositionMine PlayerState})
-	 {Print 'Le joueur a pose une mine'}
+	 {Print 'Le Player2 a pose une mine'}
 	 NewPlayerState={AdjoinList PlayerState [mineAmmo#PlayerState.mineAmmo-1 minePlanted#PlayerState.minePlanted+1 mineLocation#(KindFire.1|PlayerState.mineLocation)]}
 	 NewPlayerState
       elseif (PlayerState.missileAmmo > 0) then
 	 KindFire = missile({RandomPositionMissile PlayerState})
-	 {Print 'le joueur a deploye un missile'}
+	 {Print 'Le Player2 a deploye un missile'}
 	 NewPlayerState={AdjoinList PlayerState [missileAmmo#PlayerState.missileAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.droneAmmo > 0) then
 	 KindFire = {RandomRowOrColumn}
-	 {Print 'Le joueur a lance un drone'}
+	 {Print 'Le Player2 a lance un drone'}
 	 NewPlayerState={AdjoinList PlayerState [droneAmmo#PlayerState.droneAmmo-1]}
 	 NewPlayerState
       elseif(PlayerState.sonarAmmo > 0) then
 	 KindFire=sonar
-	 {Print 'Le joueur a lance un sonar'}
+	 {Print 'Le Player2 a lance un sonar'}
 	 NewPlayerState={AdjoinList PlayerState [sonarAmmo#PlayerState.sonarAmmo-1]}
 	 NewPlayerState
       else 
@@ -425,9 +425,10 @@ in
    %Binds <Message> ::=message(id:<id> damage:0|1|2 lifeleft:<life>)
    %Returns the new state of the player
    fun{SayMissileExplode ID Position PlayerState Message}
-      NewPlayerState Manhattan Damage
-   in
+      NewPlayerState Manhattan Damage in
       Manhattan = {Abs (Position.x-PlayerState.position.x)} + {Abs (Position.y - PlayerState.position.y)}
+      {Print 'La distance Manhattan du Player2 est de :'}
+      {Print Manhattan}
       if Manhattan >= 2 then
 	 NewPlayerState=PlayerState
 	 Damage=0
@@ -461,47 +462,59 @@ in
      {SayMissileExplode ID Position PlayerState Message}
    end
 
-   fun{SayPassingDrone Drone ID Answer PlayerState}
-      ID=PlayerState.id
-      if Drone.1==row then
-	 if PlayerState.position.x==Drone.2 then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      else
-	 if PlayerState.position.y==Drone.2 then
-	    Answer=true
-	 else
-	    Answer=false
-	 end
-      end
-      PlayerState
-   end
+  fun{SayPassingDrone Drone ID Answer PlayerState}
+     if PlayerState.alive==false then
+	ID=null
+	Answer=null
+	PlayerState
+     else
+	ID=PlayerState.id
+	if Drone.1==row then
+	   if PlayerState.position.x==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	else
+	   if PlayerState.position.y==Drone.2 then
+	      Answer=true
+	   else
+	      Answer=false
+	   end
+	end
+	PlayerState
+     end
+  end
 
    fun{SayAnswerDrone Drone ID Answer PlayerState}
       PlayerState
    end
 
    fun{SayPassingSonar ID Answer PlayerState}
-      Choice Random in
-      ID=PlayerState.id
-      Choice={OS.rand} mod 2
-      if Choice==0 then
-	 Random={OS.rand} mod (1+Input.nColumn)
-	 if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
-	    Answer=pt(x:PlayerState.position.x y:Random)
-	    PlayerState
-	 else
-	    {SayPassingSonar ID Answer PlayerState}
-	 end
+      if PlayerState.alive==false then
+	 ID=null
+	 Answer=null
+	 PlayerState
       else
-	 Random={OS.rand} mod (1+Input.nRow)
-	 if {IsPositionOk Random PlayerState.position.y}==1 then
-	    Answer=pt(x:Random y:PlayerState.position.y)
-	     PlayerState
+	 Choice Random in
+	 ID=PlayerState.id
+	 Choice={OS.rand} mod 2
+	 if Choice==0 then
+	    Random={OS.rand} mod (1+Input.nColumn)
+	    if {IsPositionOk PlayerState.position.x Random}==1 then %if the position is possible
+	       Answer=pt(x:PlayerState.position.x y:Random)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 else
-	    {SayPassingSonar ID Answer PlayerState}
+	    Random={OS.rand} mod (1+Input.nRow)
+	    if {IsPositionOk Random PlayerState.position.y}==1 then
+	       Answer=pt(x:Random y:PlayerState.position.y)
+	       PlayerState
+	    else
+	       {SayPassingSonar ID Answer PlayerState}
+	    end
 	 end
       end
    end
