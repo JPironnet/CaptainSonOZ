@@ -23,6 +23,11 @@ export
    maxDistanceMissile:MaxDistanceMissile
    guiDelay:GUIDelay
 define
+   RandomInt
+   GenerateBlankMap
+   PutIslands
+   MapGenerator
+
    IsTurnByTurn
    NRow
    NColumn
@@ -51,6 +56,53 @@ in
 
 %%%% Description of the map %%%%
 
+/*/ 
+fun {RandomInt}
+   Int in
+   Int = {OS.rand mod 10 + 1}
+   if(Int < 4) then
+      {RandomInt}
+   else
+      Int
+   end
+end
+
+NRow = {RandomInt}
+NColumn = {RandomInt}
+
+fun{CreateRow Row}
+   RowZero
+   case Row of 0 then RowZero
+   else 
+      0|{CreateRow}
+   end
+end
+
+fun{GenerateBlankMap}
+   Map RowOfZero 
+   fun{FinishMap Row Column}
+      case Column of 0 then Map
+      else 
+         Map=Row|{FinishMap Row Column-1}
+      end
+   in
+      RowOfZero={CreateRow NRow}
+      {FinishMap RowOfZero NColumn}
+   end
+end
+
+fun{PutIslands BlankMap}
+   MaxIslands in
+   MaxIslands= ... %trouver une relation math
+
+end
+ 
+fun{MapGenerator}
+   {PutIslands {GenerateBlankMap}}
+end
+
+Map = {MapGenerator}
+*/
    NRow = 6
    NColumn = 6
 
