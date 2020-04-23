@@ -5,6 +5,7 @@ import
    Player
    PlayerSmart
    Player2
+   PlayerBasicAI
 export
 	playerGenerator:PlayerGenerator
 define
@@ -15,6 +16,7 @@ in
 		of player2 then {PlayerSmart.portPlayer Color ID}
 		[] player1 then {Player2.portPlayer Color ID}
 		[] player3 then {Player.portPlayer Color ID}
+		[] basic then {PlayerBasicAI.portPlayer Color ID}
 		end
 	end
 end

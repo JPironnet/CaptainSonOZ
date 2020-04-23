@@ -58,7 +58,7 @@ in
 
 %%%% Description of the map %%%%
 
-/* 
+
 fun {RandomInt}
    Int in
    Int = {OS.rand} mod 10 + 1
@@ -70,17 +70,17 @@ fun {RandomInt}
 end
 
 NRow = {RandomInt}
-NColumn = {RandomInt}
+NColumn = NRow
 
 fun{CreateRow Row}
-   NewRow Rand in
-   case Row of 0 then NewRow
+   if Row == 0 then nil
    else 
-      Rand = {OS.rand} mod 4
-      if(Rand==0) then
-         NewRow=1|{CreateRow Row-1}
-      else 
-         NewRow=0|{CreateRow Row-1}
+      Rand in 
+      Rand = {OS.rand} mod 6
+      if Rand < 5 then 
+         0|{CreateRow Row-1}
+      else
+         1|{CreateRow Row-1}
       end
    end
 end
@@ -88,7 +88,7 @@ end
 fun{FinishMap Row Column}
    Map NewRow in
    NewRow={CreateRow Row}
-   case Column of 0 then Map
+   case Column of 0 then nil
    else 
       Map=NewRow|{FinishMap Row Column-1}
    end
@@ -98,10 +98,8 @@ fun{MapGenerator}
    {FinishMap NRow NColumn}
 end
 
-*/
-
 Map = {MapGenerator}
-
+/* 
    NRow = 6
    NColumn = 6
 
@@ -112,10 +110,12 @@ Map = {MapGenerator}
 	  [0 0 0 0 0 1]
 	  [1 1 0 0 0 0]]
 
+   */
+
 %%%% Players description %%%%
 
    NbPlayer = 3
-   Players = [player1 player2 player3]
+   Players = [basic basic basic]
    Colors = [black blue red]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
