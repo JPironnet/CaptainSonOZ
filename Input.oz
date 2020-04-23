@@ -1,6 +1,8 @@
 %Input.Oz
 %Don't change any names, change only the values
 functor
+import 
+   OS
 export
    isTurnByTurn:IsTurnByTurn
    nRow:NRow
@@ -24,8 +26,8 @@ export
    guiDelay:GUIDelay
 define
    RandomInt
-   GenerateBlankMap
-   PutIslands
+   CreateRow
+   FinishMap
    MapGenerator
 
    IsTurnByTurn
@@ -56,10 +58,10 @@ in
 
 %%%% Description of the map %%%%
 
-/*/ 
+/* 
 fun {RandomInt}
    Int in
-   Int = {OS.rand mod 10 + 1}
+   Int = {OS.rand} mod 10 + 1
    if(Int < 4) then
       {RandomInt}
    else
@@ -71,38 +73,35 @@ NRow = {RandomInt}
 NColumn = {RandomInt}
 
 fun{CreateRow Row}
-   RowZero
-   case Row of 0 then RowZero
+   NewRow Rand in
+   case Row of 0 then NewRow
    else 
-      0|{CreateRow}
-   end
-end
-
-fun{GenerateBlankMap}
-   Map RowOfZero 
-   fun{FinishMap Row Column}
-      case Column of 0 then Map
+      Rand = {OS.rand} mod 4
+      if(Rand==0) then
+         NewRow=1|{CreateRow Row-1}
       else 
-         Map=Row|{FinishMap Row Column-1}
+         NewRow=0|{CreateRow Row-1}
       end
-   in
-      RowOfZero={CreateRow NRow}
-      {FinishMap RowOfZero NColumn}
    end
 end
 
-fun{PutIslands BlankMap}
-   MaxIslands in
-   MaxIslands= ... %trouver une relation math
+fun{FinishMap Row Column}
+   Map NewRow in
+   NewRow={CreateRow Row}
+   case Column of 0 then Map
+   else 
+      Map=NewRow|{FinishMap Row Column-1}
+   end
+end
 
-end
- 
 fun{MapGenerator}
-   {PutIslands {GenerateBlankMap}}
+   {FinishMap NRow NColumn}
 end
+
+*/
 
 Map = {MapGenerator}
-*/
+
    NRow = 6
    NColumn = 6
 
