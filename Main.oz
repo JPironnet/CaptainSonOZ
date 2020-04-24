@@ -42,7 +42,7 @@ in
 	 if Number > Input.nbPlayer then nil %There is no more player in Players
 	 else 
 	    case Players#Colors of (H|T)#(X|Xr) then 
-         player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
+	       player(port:{PlayerManager.playerGenerator H X Number} turnToWait:0)|{GP T Xr Number+1}
 	    end
 	 end
       end
@@ -243,7 +243,7 @@ in
     
    proc {LaunchSimultaneous Players GameState GUI DeadPort}
       proc {Turn Player}
-	 Number  GS1 Answer  in
+	 GS1 Answer Number Answer2 Number2 in
 	 {Print '#########################################################'}
 	 {Send Player.port isDead(?Answer)}
 	 {Wait Answer}
@@ -252,7 +252,7 @@ in
 	    {Send DeadPort alive(?Number)}
 	    {Wait Number}
 	    if Number==1 then
-	       {Print 'VICTOIRE'}
+	       {Print 'VICTORY'}
 	       skip
 	    else
 	       {Send Player.port dive}
@@ -268,13 +268,9 @@ in
 		  {ChargeItem Player GS1 GUI}
 		  {SimulateThinking}
 		  {FireItem Player GS1 GUI}
-		  if Answer==true then
-		     if Number==1 then
-			{Print 'LES DERNIERS JOUEURS SONT MORTS EN MEME TEMPS'}
-			skip
-		     else
-			skip
-		     end
+		  {Send Player.port isDead(?Answer2)}
+		  {Wait Answer2}
+		  if Answer2==true then skip
 		  else
 		     {SimulateThinking}
 		     {MineExplode Player GS1 GUI}
@@ -440,30 +436,12 @@ in
     proc{TreatStream DeadStream NbPlayers DeadList}
        case DeadStream
        of dead(ID)|T then
-	  NewDeadList in
-	  NewDeadList={GenerateDeadList ID DeadList}
-	  if NewDeadList==nil then
-	     {TreatStream T NbPlayers DeadList}
-	  else
-	     {TreatStream T NbPlayers-1 NewDeadList}
-	  end
+	  {TreatStream T NbPlayers-1 DeadList}
        [] alive(Number)|T then
 	  Number=NbPlayers
 	  {TreatStream T NbPlayers DeadList} 
        else
 	  {TreatStream DeadStream NbPlayers DeadList}
-       end
-    end
-
-    %Check if the player with his ID is already dead
-    %If not, it adds the ID of the player to the list DeadList and returns the new DeadList
-    %Otherwise, it returns nil
-    fun{GenerateDeadList ID DeadList}
-       case DeadList of nil then ID|DeadList
-       [] H|T then
-	  if H==ID then nil
-	  else {GenerateDeadList ID T}
-	  end
        end
     end
        

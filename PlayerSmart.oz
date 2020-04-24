@@ -37,7 +37,6 @@ define
    MineOk
    IsLimitOfMap
    RandomPosition   
-   HelpII
    MoveRandomly
    MoveIfTarget
 
@@ -153,7 +152,7 @@ in
    in
       Position=pt(x:0 y:0)
       Id=id(id:ID color:Color name:_)
-      Target=target(id:0 position:Position isTarget:false)
+      Target=target(id:0 position:Position isTarget:false stillTarget:0)
 
       PlayerState = playerstate(
 		       id:Id 
@@ -612,7 +611,30 @@ in
    %If the player has a target, he checks if the target has damages, he he does not have damage, the player has lost his target
    %Returns the state of the player
    fun{SayDamageTaken ID Damage LifeLeft PlayerState}
-     PlayerState
+      NewTarget NewPlayerState in
+      if ID==PlayerState.target.id then
+	 NewTarget={AdjoinList PlayerState.target [stillTarget#0]}
+	 NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	 NewPlayerState
+      else
+	 if ID==PlayerState.id then
+	    PlayerState
+	 else
+	    TestTarget in
+	    {Print 'JE SUIS LA'}
+	    TestTarget=PlayerState.target.stillTarget+1
+	    if TestTarget==3 then
+	       {Print 'The playerSmart has lost his target because the position is not correct enough'}
+	       NewTarget={AdjoinList PlayerState.target [id#0 position#pt(x:0 y:0) isTarget#false stillTarget#0]}
+	       NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	       NewPlayerState
+	    else
+	       NewTarget={AdjoinList PlayerState.target [stillTarget#TestTarget]}
+	       NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
+	       NewPlayerState
+	    end
+	 end
+      end
    end
 
 %%%%%%%%%%% Useful functions %%%%%%%%%%%%%%%%%%%

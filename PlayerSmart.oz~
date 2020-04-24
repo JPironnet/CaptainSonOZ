@@ -612,19 +612,7 @@ in
    %If the player has a target, he checks if the target has damages, he he does not have damage, the player has lost his target
    %Returns the state of the player
    fun{SayDamageTaken ID Damage LifeLeft PlayerState}
-      NewPlayerState NewTarget in
-      if ID==PlayerState.target.id then
-	 if Damage>0 then
-	    PlayerState
-	 else
-	    NewTarget={AdjoinList PlayerState.target [id#0 position#pt(x:0 y:0) isTarget#false]}
-	    NewPlayerState={AdjoinList PlayerState [target#NewTarget]}
-	    {Print 'Le joueur smart a perdu sa cible'}
-	    NewPlayerState
-	 end
-      else
-	 PlayerState
-      end
+     PlayerState
    end
 
 %%%%%%%%%%% Useful functions %%%%%%%%%%%%%%%%%%%

@@ -114,7 +114,7 @@ Map = {MapGenerator}
 
 %%%% Players description %%%%
 
-   NbPlayer =3
+   NbPlayer =4  
    Players = [player1 player2 playerSmart]
    Colors = [pink blue purple]
 
