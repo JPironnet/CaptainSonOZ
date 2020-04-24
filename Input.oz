@@ -76,8 +76,8 @@ fun{CreateRow Row}
    if Row == 0 then nil
    else 
       Rand in 
-      Rand = {OS.rand} mod 6
-      if Rand < 5 then 
+      Rand = {OS.rand} mod 8
+      if Rand < 7 then 
          0|{CreateRow Row-1}
       else
          1|{CreateRow Row-1}
