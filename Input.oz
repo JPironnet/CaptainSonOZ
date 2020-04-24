@@ -54,7 +54,7 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
 
@@ -114,9 +114,9 @@ Map = {MapGenerator}
 
 %%%% Players description %%%%
 
-   NbPlayer =3
-   Players = [player1 player2 playerSmart]
-   Colors = [pink blue purple]
+   NbPlayer =4
+   Players = [player1 player2 playerSmart basic]
+   Colors = [blue pink purple red]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -129,7 +129,7 @@ Map = {MapGenerator}
 
 %%%% Life %%%%
 
-   MaxDamage = 5 
+   MaxDamage = 4
 
 %%%% Number of load for each item %%%%
 
