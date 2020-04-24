@@ -114,9 +114,9 @@ Map = {MapGenerator}
 
 %%%% Players description %%%%
 
-   NbPlayer = 3
-   Players = [player2 player3 player1]
-   Colors = [black blue red]
+   NbPlayer = 2
+   Players = [player1 player2]
+   Colors = [red blue]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 

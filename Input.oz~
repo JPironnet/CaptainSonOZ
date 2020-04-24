@@ -47,7 +47,7 @@ in
 
 %%%% Style of game %%%%
 
-   IsTurnByTurn = false
+   IsTurnByTurn = true
 
 %%%% Description of the map %%%%
 
@@ -63,9 +63,9 @@ in
 
 %%%% Players description %%%%
 
-   NbPlayer = 3
-   Players = [player1 player2 player3]
-   Colors = [black blue red]
+   NbPlayer = 2
+   Players = [player2 player3]
+   Colors = [blue red]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
@@ -89,10 +89,10 @@ in
 
 %%%% Distances of placement %%%%
 
-   MinDistanceMine = 1
+   MinDistanceMine = 0
    MaxDistanceMine = 2
    MinDistanceMissile = 1
-   MaxDistanceMissile = 4
+   MaxDistanceMissile = 5
 
 %%%% Waiting time for the GUI between each effect %%%%
 
