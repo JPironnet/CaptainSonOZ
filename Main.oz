@@ -7,13 +7,16 @@ import
    OS
    System(showInfo:Print)
 define
+   /* Variables declaration*/
    GUI_Port
    RecordPlayers
    DeadPort
    StartDeadPort
    TreatStream
    GenerateDeadList
+   GameState
 
+   /* Functions and procedures declaration*/
    GeneratePlayers
    CanMove
    CreateGameState
@@ -31,12 +34,12 @@ define
    InitialPosition
    BroadCastMessage
 
-   GameState
+  
    
 in
    
     %Function to generate players at the beginning of the game
-    %Returns a list of records with label player and three fields (port, turnToWait and alive)
+    %Returns a list of records with label player and two fields (port, turnToWait)
    fun {GeneratePlayers}
       fun {GP Players Colors Number}
 	 if Number > Input.nbPlayer then nil %There is no more player in Players
@@ -51,10 +54,12 @@ in
    end
 
     %Check if the player can move
-    %Returns true if he can, false otherwise
+    %Returns true if he can, false otherwise (used for turn by turn mode)
     fun{CanMove Player}
-       if Player.turnToWait==0 then true
-       else false
+       if Player.turnToWait==0 then %if its his turn to play
+         true 
+       else 
+         false
        end
     end
 
@@ -71,13 +76,13 @@ in
        GameState
     end
     
-
+   %Simulates the thinking time of a player before his actions (used in sumultaneous mode)
     proc {SimulateThinking}
         {Delay ({OS.rand} mod (Input.thinkMax-Input.thinkMin+1))+Input.thinkMin}
     end
 
     
-    %Function that updates the turnToWait of the player, and then updates the playerslist of GameState.
+    %Function that updates the turnToWait of the player, and then updates the playerslist of GameState
     %Thanks to this function, the player is updated for the next round with turnToWait smaller 
     %Returns NewGameState
     fun{UpdateTtw Player GameState}
