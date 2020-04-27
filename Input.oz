@@ -25,6 +25,7 @@ export
    maxDistanceMissile:MaxDistanceMissile
    guiDelay:GUIDelay
 define
+   /*Variables and function declaration for the extension to generator a random map */
    RandomInt
    CreateRow
    FinishMap
@@ -58,7 +59,7 @@ in
 
 %%%% Description of the map %%%%
 
-
+%Return a random integer between 4 and 10
 fun {RandomInt}
    Int in
    Int = {OS.rand} mod 10 + 1
@@ -69,9 +70,11 @@ fun {RandomInt}
    end
 end
 
+%Set NRow and NColum to a random integer between 4 and 10
 NRow = {RandomInt}
 NColumn = NRow
 
+%Create a random a random row 
 fun{CreateRow Row}
    if Row == 0 then nil
    else 
@@ -85,6 +88,7 @@ fun{CreateRow Row}
    end
 end
 
+%Create a map with a set of randow columns 
 fun{FinishMap Row Column}
    Map NewRow in
    NewRow={CreateRow Row}
@@ -94,23 +98,12 @@ fun{FinishMap Row Column}
    end
 end
 
+%Generate a random map
 fun{MapGenerator}
    {FinishMap NRow NColumn}
 end
 
 Map = {MapGenerator}
-/* 
-   NRow = 6
-   NColumn = 6
-
-   Map = [[0 0 0 0 0 0]
-	  [0 1 1 0 0 0]
-	  [0 0 1 0 0 0]
-	  [0 0 0 0 0 0]
-	  [0 0 0 0 0 1]
-	  [1 1 0 0 0 0]]
-
-   */
 
 %%%% Players description %%%%
 
