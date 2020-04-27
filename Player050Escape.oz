@@ -1,4 +1,4 @@
-%PlayerOnlyOne.Oz
+%PlayerEscape.Oz
 functor
 import
    Input
