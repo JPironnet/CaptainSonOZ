@@ -42,7 +42,7 @@ define
 
 
 in
-   %Treat the stream of the port and takes as arguments the stream and the state of the player PlayerState
+   
    proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
       [] initPosition(ID Position)|T then
@@ -286,8 +286,6 @@ in
    %ID and KindFire are binds as follow :
    %ID::=<id> and KindFire::=<fireitem>|null
    %KindFire=nil if the player does not hae enough charge to fire an item
-   %The player will fire a sonar, a drone, and when the player has a good target, he checks the manhattan distance
-   %If the manhattan distance is less than 2, he put a mine. Otherwise, he launches a missile
    %Returns the new state of the player
    fun{FireItem ID KindFire PlayerState}
       NewPlayerState in
@@ -610,8 +608,7 @@ in
       end
    end
 
-   %if the player does not receive a message with the id of his own target, TestTarget is incremented
-   %If TestTarget=3, the player has lost his target
+   %If the player has a target, he checks if the target has damages, he he does not have damage, the player has lost his target
    %Returns the state of the player
    fun{SayDamageTaken ID Damage LifeLeft PlayerState}
       NewTarget NewPlayerState in
@@ -624,6 +621,7 @@ in
 	    PlayerState
 	 else
 	    TestTarget in
+	    {Print 'JE SUIS LA'}
 	    TestTarget=PlayerState.target.stillTarget+1
 	    if TestTarget==3 then
 	       {Print 'The playerSmart has lost his target because the position is not correct enough'}
@@ -656,8 +654,6 @@ in
       end
    end
 
-   %Check if it is the limit of the map
-   %Reutrn true if it is, false otherwise
    fun{IsLimitOfMap Row Column}
       if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then false
       else true 
@@ -722,10 +718,6 @@ in
       end
    end
 
-   %If the player does not have a target, he moves randomly by choosing a number between 1 and 5
-   %The function checks if the new position is correct
-   %Binds ID Position and Direction
-   %Return the new state of the player
     fun{MoveRandomly ID Position Direction PlayerState}
       Poles Dir NewPlayerState in
       ID=PlayerState.id
@@ -796,9 +788,6 @@ in
       end
     end
 
-    %The player moves to try to approach his target
-    %Binds ID Direction and Position
-    %Return the new state of the player
     fun{MoveIfTarget ID Position Direction PlayerState Acc}
        DistX DistY NewPlayerState in
        ID=PlayerState.id

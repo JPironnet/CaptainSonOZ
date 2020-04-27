@@ -41,7 +41,7 @@ define
 
 
 in
-   %Treat the stream of the port and takes as arguments the stream and the state of the player PlayerState
+   
     proc{TreatStream Stream PlayerState} 
       case Stream of nil then skip
       [] initPosition(ID Position)|T then
@@ -462,8 +462,6 @@ in
      {SayMissileExplode ID Position PlayerState Message}
    end
 
-  %Check the Drone argument and answer by true if tje position is true, false otherwise
-  %Return the state of the player
   fun{SayPassingDrone Drone ID Answer PlayerState}
      if PlayerState.alive==false then
 	ID=null
@@ -492,8 +490,6 @@ in
       PlayerState
    end
 
-    %The player answer to the sonar with a random column or row and the other is the true position
-  %Return the state of the player
    fun{SayPassingSonar ID Answer PlayerState}
       if PlayerState.alive==false then
 	 ID=null
@@ -553,8 +549,6 @@ in
       end
    end
 
-   %Choose a random position to place the mine
-   %Return the position
    fun{RandomPositionMine PlayerState}
       Row Column Position Manhattan in
       Row = {OS.rand} mod (Input.nRow+1)
@@ -572,8 +566,6 @@ in
       end
    end
 
-   %Choose a random position to launch the missile
-   %Return the position
     fun{RandomPositionMissile PlayerState}
       Row Column Position Manhattan in
       Row = {OS.rand} mod (Input.nRow+1)
@@ -605,8 +597,6 @@ in
       end
    end
 
-   %Check if it is the limit of the map
-   %Reutrn true if it is, false otherwise
    fun{IsLimitOfMap Row Column}
       if  Row >= 1 andthen Row =< Input.nRow andthen Column >= 1 andthen Column =< Input.nColumn then false
       else true 
@@ -624,8 +614,6 @@ in
       end 
    end
 
-   %Check if the player has already visited the position between 2 surfaces
-   %Return 0 if not, 1 otherwise
    fun{IsVisited X Y List}
       case List of nil then 0
       [] H|T then

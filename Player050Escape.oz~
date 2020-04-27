@@ -519,8 +519,6 @@ in
      {SayMissileExplode ID Position PlayerState Message}
    end
 
-   %Check the Drone argument and answer by true if tje position is true, false otherwise
-  %Return the state of the player
   fun{SayPassingDrone Drone ID Answer PlayerState}
      if PlayerState.alive==false then
 	ID=null
